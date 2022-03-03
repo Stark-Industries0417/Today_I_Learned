@@ -1,9 +1,9 @@
 # docker 사용법
 
-App Store ----> Docker Hub   
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   ↓   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓   
-Program ----> &nbsp;&nbsp;image   
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   ↓   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓      
+App Store ----> Docker Hub  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↓ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓  
+Program ----> &nbsp;&nbsp;image  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↓ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓  
 Process ----> container
 
 ## 이미지를 실행시켜 컨테이너 만들기
@@ -29,6 +29,6 @@ docker ps ⇒ 컨테이너 내에서 실행되는 프로세스 볼 수 있음
 
 </aside>
 
- 
+![docker_port](../image/docker_port.png)
 
 docker run —name ws3 -p 8081:80 httpd
