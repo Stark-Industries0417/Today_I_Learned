@@ -69,7 +69,7 @@ USER jenkins
 
 </aside>
 
-<img src="/Jenkins/image/docker.png" style="width: 400px; height: 350px;">
+<img src="/Jenkins/image/docker.png" style="width: 500px; height: 450px;">
 
 docker ps // 젠킨스라는 이름으로 젠킨스 이미지가 실행되고 있음
 
