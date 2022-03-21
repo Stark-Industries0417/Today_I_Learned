@@ -1,14 +1,10 @@
 # docker 사용법
 
-App Store                        ————————→                          Docker Hub
-
-      $\downarrow$                                                                                                 $\downarrow$ **pull**
-
-Program                           ————————→                          image
-
- $\downarrow$                                                                                                $\downarrow$ **run**
-
-Process                            ————————→                          container
+App Store ----> Docker Hub   
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   ↓   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓   
+Program ----> &nbsp;&nbsp;image   
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   ↓   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓      
+Process ----> container
 
 ## 이미지를 실행시켜 컨테이너 만들기
 
@@ -34,7 +30,5 @@ docker ps ⇒ 컨테이너 내에서 실행되는 프로세스 볼 수 있음
 </aside>
 
  
-
-![Untitled](docker%20%E1%84%89%E1%85%A1%E1%84%8B%203ce22/Untitled.png)
 
 docker run —name ws3 -p 8081:80 httpd
