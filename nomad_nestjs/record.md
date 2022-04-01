@@ -37,3 +37,9 @@ export class AppController {
 
 nestJS 는 controller 로직과 비즈니스 로직 구분하고 싶어한다.
 => app.Service 메소드를 통해 비즈니스 구축
+
+### 컨트롤러 생성
+
+```terminal
+nest g co
+```
