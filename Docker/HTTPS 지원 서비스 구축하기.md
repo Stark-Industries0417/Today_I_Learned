@@ -198,3 +198,73 @@ keepalive_timeout 65;
     }
 }
 ```
+
+## 인증서 갱신
+
+- certbot 은 인증서 확인 후, 컨테이너가 중단됨
+- 해당 컨테이너를 주기적으로 실행해주면 된다.
+- --dry-run 옵션으로 충분히 테스트 후, --force-renewal 옵션을 넣어줌
+
+```yml
+certbot:
+  depends_on:
+    - nginxproxy
+  image: certbot/certbot
+  container_name: certbot
+  volumes:
+    - ./certbot-etc:/etc/letsencrypt
+    - ./myweb:/usr/share/nginx/html
+  command: certonly --webroot --webroot-path=/usr/share/nginx/html --email 내이메일@test.com --agree-tos --no-eff-email -d 내 도메인 -d www.내도매인 --force-renewal
+```
+
+#### Crontab 설정
+
+*분(0-59) *시간(0-23) *일(1-31) *월(1-12) \*요일(0-7)
+
+- 요일에서 0과7은 일요일, 1부터 6은 월요일부터 토요일
+
+- 매분 실행
+
+```
+***** /root/scripts/status_check.sh
+```
+
+- 특정 시간에 실행 - 매주 월요일 오전 6시 40분에 실행
+
+```
+40 6 * * 1 /root/scripts/status_check.sh
+```
+
+- 반복 실행 - 매일 매시간 0분, 20분, 40분에 실행
+
+```
+0, 20, 40 * * * * /root/scripts/status_check.sh
+```
+
+- 범위 실행 - 매일 오전 6시 10분부터 40분 까지 매분 실행
+
+```
+10-40 6 * * * /root/scripts/status_check.sh
+```
+
+- 간격 실행 - 매 20분마다 실행
+
+```
+*/20 * * * * /root/scripts/status_check.sh
+```
+
+- 특정 여러 시각 실행 - 10일에서 12일 까지 4시, 5시, 6시 매 20분 마다 실행
+
+```
+*/20 4, 5, 6 10-12 * * /root/scripts/status_check.sh
+```
+
+#### crontab 실행 팁
+
+- 로그 남겨두기
+- 로그 많이 쌓이지 않게 주기적으로 삭제(저장공간 꽉차면 컴퓨터 다운 또는 비정상 동작 보일 수 있음)
+
+```
+*/20 * * * * /root/scripts/status_check.sh >> /var/log/status_check.log 2>&1
+* * 1 * * rm -rf /var/log/status_check.log 2>&1
+```
