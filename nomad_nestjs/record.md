@@ -131,3 +131,14 @@ export class MoviesModule {}
 
 providers 로 MoviesService 를 import 하는 덕분에 MoviesService 타입을 추가하는 것만으로도 작동이 되는 것이다.
 => NestJS가 MoviesService import -> Controller에 inject(주입) 한다. 그래서 MoviesService 에 Injectable decorator 가 있다.
+
+## UNIT TESTING
+
+**모든 function 을 따로 테스트 하는 것**
+
+jest: 자바스크립트를 쉽게 테스팅하는 npm 패키지
+"test:cov": "jest --coverage" => 코드가 얼마나 테스팅 됐는지 또는 안 됐는지 알려줌
+
+## e2e TESTING
+
+**사용자 관점에서 취할만한 액션들을 처음부터 끝까지 테스트 하는것**
