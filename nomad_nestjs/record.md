@@ -142,3 +142,42 @@ jest: 자바스크립트를 쉽게 테스팅하는 npm 패키지
 ## e2e TESTING
 
 **사용자 관점에서 취할만한 액션들을 처음부터 끝까지 테스트 하는것**
+
+```javascript
+it("POST", () => {
+  return request(app.getHttpServer())
+    .post("/movies")
+    .send({
+      title: "Test",
+      year: 2000,
+      genres: ["test"],
+    })
+    .expect(201);
+});
+
+describe("/movies/:id", () => {
+  it("GET 200", () => {
+    return request(app.getHttpServer()).get("/movies/1").expect(200);
+  });
+});
+```
+
+e2e 테스트로 /movies/1 을 찾으면 id 값이 string 으로 나오고 찾지 못했다고 나온다
+main.ts 에서 transform 옵션으로 controller에서 내가 타입을 number 로 지정해서 id 값이 number로 바뀌는데
+e2e 테스트에선 적용되지 않았음
+
+테스트에서도 실제 어플리케이션의 환경을 그대로 적용시켜줘야 한다
+테스팅 모듈에서 만들어낸 app 객체가 pipe 에 올라가 있지 않기 때문
+
+```javascript
+app = moduleFixture.createNestApplication();
+app.useGlobalPipes(
+  new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
+  })
+);
+```
+
+> transform 옵션이 main.ts 에만 있었고 spec.ts 에는 없었기 때문
