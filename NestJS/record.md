@@ -41,3 +41,7 @@
 
 express 위에서 typescript 사용하기 위해 @type/express 설치
 어차피 프로덕션 서버에서는 컴파일된 결과인 자바스크립트만 실행할 것이기 때문에 @type/express -D 옵션으로 devDependencies에다 명시한다.
+
+<hr>
+
+express 는 json 미들웨어 없이는 request 의 body를 읽어 낼 수 없다.

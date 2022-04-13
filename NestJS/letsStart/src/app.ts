@@ -9,17 +9,59 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get("/cat/0", (req, res, next) => {
-  console.log("This is cats id: 0 middleware");
-  next();
+app.use(express.json());
+
+app.get("/cat", (req, res) => {
+  try {
+    const cats = Cat;
+    res.status(200).send({
+      success: true,
+      data: {
+        cats,
+      },
+    });
+  } catch (err) {
+    res.status(400).send({
+      success: false,
+      error: err.message,
+    });
+  }
 });
 
-app.get("/", (req: express.Request, res: express.Response) => {
-  res.send({ cats: Cat });
+app.get("/cat/:id", (req, res) => {
+  try {
+    const params = req.params;
+    const cat = Cat.find((cat) => {
+      return cat.id === params.id;
+    });
+    res.status(200).send({
+      success: true,
+      data: {
+        cat,
+      },
+    });
+  } catch (err) {
+    res.status(400).send({
+      success: false,
+      error: err.message,
+    });
+  }
 });
 
-app.get("/cat/0", (req: express.Request, res: express.Response) => {
-  res.send({ blue: Cat[0] });
+app.post("/cat", (req, res) => {
+  try {
+    const data = req.body;
+    Cat.push(data);
+    res.status(200).send({
+      success: true,
+      data: { data },
+    });
+  } catch (err) {
+    res.status(400).send({
+      success: false,
+      error: err.message,
+    });
+  }
 });
 
 app.use((req, res) => {
