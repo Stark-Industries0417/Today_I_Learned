@@ -1,22 +1,45 @@
 import * as express from "express";
 import catsRouter from "./cats/cats.route";
 
-const app: express.Express = express();
+class Server {
+  public app: express.Application;
 
-app.use((req, res, next) => {
-  console.log(req.rawHeaders[1]);
-  next();
-});
+  constructor() {
+    const app: express.Application = express();
+    this.app = app;
+  }
 
-app.use(express.json());
+  private setRoute() {
+    this.app.use(catsRouter);
+  }
 
-app.use(catsRouter);
+  private setMiddleware() {
+    this.app.use((req, res, next) => {
+      console.log(req.rawHeaders[1]);
+      next();
+    });
 
-app.use((req, res) => {
-  console.log("this is error middleware");
-  res.send({ error: "404 Not Found error" });
-});
+    this.app.use(express.json());
 
-app.listen(3000, () => {
-  console.log("server is on ...");
-});
+    this.setRoute();
+
+    this.app.use((req, res) => {
+      console.log("this is error middleware");
+      res.send({ error: "404 Not Found error" });
+    });
+  }
+
+  public listen() {
+    this.setMiddleware();
+    this.app.listen(3000, () => {
+      console.log("server is on ...");
+    });
+  }
+}
+
+function init() {
+  const server = new Server();
+  server.listen();
+}
+
+init();
