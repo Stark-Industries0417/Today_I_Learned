@@ -70,6 +70,85 @@ rm -rf 옵션 사용가능하게 만들어줌
 "rxjs": "^7.2.0"
 ```
 
+# Nest first project
+
 **interceptor은 서비스의 return 값 데이터를 원하는 형식에 맞게 가공할 때 많이 사용된다.**
 
 DTO 를 클래스로 타이핑하는 이유 => 데코레이터 패턴 적용 가능하고, 상속으로 재사용 할 수 있으므로
+
+## cats.schema.ts
+
+=> mongoDB 저장할 모델
+
+```ts
+const options: SchemaOptions = {
+  timestamps: true,
+};
+```
+
+```log
+Mongoose: cats.createIndex({ email: 1 }, { unique: true, background: true })
+Mongoose: cats.findOne({ email: 'kwon12345@naver.com' }, { projection: { _id: 1 } })
+Mongoose: cats.insertOne({ email: 'kwon12345@naver.com', name: 'fefefefef', password: '$2b$10$uZi1Xg2ueUs/J9nFO5gXaOL/SilnfG1c26SG405l2LTlX7TqZnf06', _id: new ObjectId("625fc1646d1f4919ee1c6b37"), __v: 0}, { session: null })
+
+timestamps: true, 옵션으로 mongoose 로그로 만들어진 날짜와 업데이트 날짜를 알 수 있다.
+createdAt: new Date("Wed, 20 Apr 2022 08:17:01 GMT"), updatedAt: new Date("Wed, 20 Apr 2022 08:17:01 GMT")
+```
+
+```ts
+DB에 넣을 데이터가 필수이고, 유니크 해야 함을 명시
+@Prop({
+    required: true,
+    unique: true,
+  })
+
+Dto와 swagger를 위한 데코레이터
+swagger API 명세서에 요청으로 필요한 데이터 예시를 보여줌
+@ApiProperty({
+    example: 'kwon@naver.com',
+    description: 'email',
+    required: true,
+  })
+```
+
+## cats.request.dto.ts
+
+```ts
+export class CatRequestDto extends PickType(Cat, [
+  "email",
+  "name",
+  "password",
+] as const) {}
+
+DTO: 데이터 송수신에 규격을 정하는 것(데이터 타입을 바꾼다던지 등)
+재사용성을 위해 Cat 스키마에서 상속받는다.
+PickType(Cat, [필요 스키마]) 로 요청시 받을 데이터를 정함
+```
+
+```ts
+@ApiResponse({
+    status: 500,
+    description: 'Server Error...',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'success create',
+    type: ReadOnlyCatDto,
+  })
+  @ApiOperation({ summary: '회원가입' })
+  @Post()
+  async signUp(@Body() body: CatRequestDto) {
+    return await this.catsService.signUp(body);
+  }
+
+스웨거로 응답 예시를 보여주기 위해 @ApiResponse 데코레이터 사용
+프로퍼티로 응답 객체의 타입 지정해 줄 수 있다.
+
+export class ReadOnlyCatDto extends PickType(Cat, ['email', 'name'] as const) {
+  @ApiProperty({
+    example: '328012',
+    description: 'id',
+  })
+  id: string;
+}
+```
