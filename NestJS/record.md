@@ -268,3 +268,35 @@ JwtStrategy 의 secret키는 jwt 토큰을 디코딩(인증) 할때 사용
 
 1. 각 모듈간의 의존성을 한 눈에 확인 가능
 2. 모듈의 캡슐화로 어떤 provider가 export 되는지도 확인 가능
+
+##### JwtAuthGuard 를 주입받게 되면 strategy의 validate 함수가 실행된다.
+
+##### 보안상의 이유로 request.user에 저장할 때 password 필드 제외하고 저장하는 것이 좋다
+
+```ts
+const cat = await this.catModel.findById(catId).select('-password');
+스키마에서 패스워드만 제외하고 select로 가져온다.
+
+const cat = await this.catModel.findById(catId).select('email name');
+띄어쓰기로 가져오고 싶은 복수개의 필드 가져올 수 있음
+```
+
+## 미디어 파일 서비스
+
+HTTP POST 로 바이너리 데이터를 보낼때는 HTTP 헤더로 content-type 대신 multipart/form-data 를 사용해야 한다
+
+multer 패키지 설치: HTTP multipart/form-data로 헤더에 명시할 수 있게 도와줌
+
+```ts
+서버에 있는 스태틱 파일을 제공위한 미들웨어
+
+import * as path from "path";
+
+app.useStaticAssets(path.join(__dirname, "./common", "uploads"), {
+  prefix: "/media",
+});
+
+cats.controller
+return { image: `http://localhost:5000/media/cats/${files[0].filename}` };
+이런식으로 프론트에 경로 전달
+```
