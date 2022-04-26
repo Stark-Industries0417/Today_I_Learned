@@ -3,6 +3,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Cat } from './cats.schema';
 import { Model } from 'mongoose';
 import { CatRequestDto } from './dto/cats.request.dto';
+import { Types } from 'mongoose';
+import { CommentsSchema } from 'src/comments/comments.schema';
+import mongoose from 'mongoose';
 
 @Injectable()
 export class CatsRepository {
@@ -17,7 +20,9 @@ export class CatsRepository {
     return newCat.readOnlyData;
   }
 
-  async findCatByIdWithoutPassword(catId: string): Promise<Cat | null> {
+  async findCatByIdWithoutPassword(
+    catId: string | Types.ObjectId,
+  ): Promise<Cat | null> {
     const cat = await this.catModel.findById(catId).select('-password');
     return cat;
   }
@@ -42,6 +47,12 @@ export class CatsRepository {
   }
 
   async findAll() {
-    return await this.catModel.find();
+    const CommentsModel = mongoose.model('comments', CommentsSchema);
+
+    const result = await this.catModel
+      .find()
+      .populate('comments', CommentsModel);
+
+    return result;
   }
 }
