@@ -5,7 +5,7 @@ import { Model } from 'mongoose';
 import { CatRequestDto } from './dto/cats.request.dto';
 import { Types } from 'mongoose';
 import { CommentsSchema } from 'src/comments/comments.schema';
-import mongoose from 'mongoose';
+import * as mongoose from 'mongoose';
 
 @Injectable()
 export class CatsRepository {
