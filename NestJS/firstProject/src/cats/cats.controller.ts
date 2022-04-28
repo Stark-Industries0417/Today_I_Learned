@@ -4,6 +4,7 @@ import {
   Get,
   Post,
   UploadedFiles,
+  UseFilters,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -18,8 +19,10 @@ import { CurrentUser } from 'src/common/decorators/user.decorator';
 import { Cat } from './cats.schema';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from 'src/common/utils/multer.options';
+import { SuccessInterceptor } from 'src/common/interceptors/success.interception.filter';
 
 @Controller('cats')
+@UseInterceptors(SuccessInterceptor)
 export class CatsController {
   constructor(
     private readonly catsService: CatsService,

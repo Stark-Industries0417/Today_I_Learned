@@ -1,9 +1,19 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
+import { SuccessInterceptor } from 'src/common/interceptors/success.interception.filter';
 import { CommentsCreateDto } from '../dto/comments.create.dto';
 import { CommentsService } from '../services/comments.service';
 
 @Controller('comments')
+@UseInterceptors(SuccessInterceptor)
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
