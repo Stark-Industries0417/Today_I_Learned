@@ -13,7 +13,10 @@ import { CommentsModule } from './comments/comments.module';
   imports: [
     ConfigModule.forRoot(),
     MongooseModule.forRoot(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
       useCreateIndex: true,
+      useUnifiedTopology: true,
+      useFindAndModify: false,
     }),
     CatsModule,
     AuthModule,
