@@ -15,9 +15,9 @@ import { CatsService } from './cats.service';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MulterModule.register({
-      dest: './upload',
-    }),
+    // MulterModule.register({
+    //   dest: './upload',
+    // }),
     MongooseModule.forFeature([
       { name: Cat.name, schema: CatSchema },
       { name: Comments.name, schema: CommentsSchema },
