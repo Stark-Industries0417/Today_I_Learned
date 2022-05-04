@@ -1,4 +1,8 @@
+import { SocketModel } from './models/sockets.model';
+import { Chatting } from './models/chattings.model';
+import { InjectModel } from '@nestjs/mongoose';
 import { Logger } from '@nestjs/common';
+import { Socket } from 'socket.io';
 import {
   ConnectedSocket,
   MessageBody,
@@ -8,40 +12,76 @@ import {
   SubscribeMessage,
   WebSocketGateway,
 } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
+import { Model } from 'mongoose';
 
 @WebSocketGateway({ namespace: 'chattings' })
 export class ChatsGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
   private logger = new Logger('chat');
-  // 소켓 게이트웨이 실행되었을 때 가장 먼저 실행되는 메서드
+
+  constructor(
+    @InjectModel(Chatting.name) private readonly chattingModel: Model<Chatting>,
+    @InjectModel(SocketModel.name)
+    private readonly socketModel: Model<SocketModel>,
+  ) {
+    this.logger.log('constructor');
+  }
+
   afterInit() {
     this.logger.log('init');
   }
-  // 클라이언트와 연결되자마자 실행되는 메서드
-  handleConnection(@ConnectedSocket() socket: Socket) {
-    this.logger.log(`connected: ${socket.id} ${socket.nsp.name}`);
+
+  async handleDisconnect(@ConnectedSocket() socket: Socket) {
+    const user = await this.socketModel.findOne({ id: socket.id });
+    if (user) {
+      socket.broadcast.emit('disconnect_user', user.username);
+      await user.delete();
+    }
+    this.logger.log(`disconnected : ${socket.id} ${socket.nsp.name}`);
   }
 
-  handleDisconnect(@ConnectedSocket() socket: Socket) {
-    this.logger.log(`disconnected: ${socket.id} ${socket.nsp.name}`);
+  handleConnection(@ConnectedSocket() socket: Socket) {
+    this.logger.log(`connected : ${socket.id} ${socket.nsp.name}`);
   }
 
   @SubscribeMessage('new_user')
-  handleNewUser(
-    @MessageBody() userName: string,
+  async handleNewUser(
+    @MessageBody() username: string,
     @ConnectedSocket() socket: Socket,
   ) {
-    socket.broadcast.emit('connected_user', userName);
-    return userName;
+    const exist = await this.socketModel.exists({ username });
+    if (exist) {
+      username = `${username}_${Math.floor(Math.random() * 100)}`;
+      await this.socketModel.create({
+        id: socket.id,
+        username,
+      });
+    } else {
+      await this.socketModel.create({
+        id: socket.id,
+        username,
+      });
+    }
+    socket.broadcast.emit('user_connected', username);
+    return username;
   }
 
-  @SubscribeMessage('chat')
-  chatting(@MessageBody() context: string, @ConnectedSocket() socket: Socket) {
+  @SubscribeMessage('submit_chat')
+  async handleSubmitChat(
+    @MessageBody() chat: string,
+    @ConnectedSocket() socket: Socket,
+  ) {
+    const socketObj = await this.socketModel.findOne({ id: socket.id });
+
+    await this.chattingModel.create({
+      user: socketObj,
+      chat: chat,
+    });
+
     socket.broadcast.emit('new_chat', {
-      context,
-      username: socket.id,
+      chat,
+      username: socketObj.username,
     });
   }
 }
