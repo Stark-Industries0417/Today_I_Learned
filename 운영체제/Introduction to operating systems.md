@@ -12,6 +12,17 @@
    - [동기식, 비동기식 입출력](#동기식-입출력과-비동기식-입출력)
    - [DMA(Direct memory access)](#dmadirect-memory-access)
    - [프로그램의 실행 과정](#프로그램의-실행)
+3. [Process](#3-process-1)
+   - [프로세스의 개념](#프로세스의-개념)
+   - [프로세스의 문맥](#프로세스의-문맥context)
+   - [프로세스의 상태](#프로세스의-상태)
+   - [Process Control Block](#process-control-block-pcb)
+   - [문맥 교환](#문맥-교환context-switch)
+   - [스케줄러](#스케줄러)
+   - [Thread](#thread)
+   - [Thread의 구성](#thread의-구성)
+   - [Thread 장점](#thread-장점)
+   - [Thread가 동료 thread와 공유하는 부분](#thread가-동료-thread와-공유하는-부분)
 
 # 1. Introduction to operating systems
 
@@ -147,5 +158,130 @@
 2. 주소공간에는 code(기계어 코드), data(전역변수, 자료구조 등), stack(함수 호출과 리턴 할 때 사용됨) 영역으로 구성되어있다.
 3. 이 가상메모리를 주 메모리에 모두 복사하는 것이 아닌 당장 실행할 부분인 일부분을 복사하여 사용 -> 메모리 낭비하지 않기 위해
 4. 사용되지 않는 부분은 디스크의 swap area에 저장
+
+[돌아가기](#목차)
+
+# 3. Process 1
+
+## 프로세스의 개념
+
+- Process is a program in execution
+
+## 프로세스의 문맥(context)
+
+> CPU 는 여러 프로세스를 시분할로 나눠 처리하므로 각 프로세스가 어느 code 까지 실행되었는지, data 부분의 변경된 부분과, 함수의 실행으로 stack의 바뀐 점, register에는 어떤 값을 저장했는지 등 각 프로세스의 변경사항을 파악하고 있어야 한다.
+
+- CPU 수행 상태를 나타내는 하드웨어 문맥(프로세스의 현재 상태를 나타내는데 필요한 모든 요소)
+
+  - Program Counter
+  - 각종 register
+
+- 프로세스의 주소 공간
+  - code, data, stack
+- 프로세스 관련 커널 자료 구조
+  - PCB(Process Control Block)
+  - Kernel stack
+
+## 프로세스의 상태
+
+- Running: CPU 잡고 instruction 수행중인 상태
+- Ready: CPU 기다리는 상태(메모리 등 다른 조건 모두 만족하고)
+- Blocked(wait, sleep)
+
+  - CPU 주어도 장장 instruction 수행할 수 없는 상태
+  - Process 자신이 요청한 event(ex: I/O)가 즉시 만족되지 않아 이를 기다리는 상태
+  - ex) 디스크에서 file 읽어와야 하는 경우
+
+- Suspended
+  - 외부적인 이유로 프로세스의 수행이 정지된 상태
+  - 프로세스는 통쨰로 디스크에 swap out 된다.
+  - ex) 사용자가 프로그램을 일시 정지시킨 경우(break key)
+    시스템이 여러 이유로 프로세스를 잠시 중단시킴
+    (메모리에 너무 많은 프로세스가 올라와 있을 때)
+- New: 프로세스가 실행중인 상태
+- Terminated: 수행이 끝난 상태
+
+## Process Control Block (PCB)
+
+- 운영체제가 각 프로세스를 관리하기 위해 프로세스당 유지하는 정보
+- 다음의 구성 요소를 가짐(구조체로 유지)
+
+1. OS가 관리상 사용하는 정보
+
+   - Process state, Process ID
+   - 스케줄링 정보, priority
+
+2. CPU 수행 관련 하드웨어 값
+
+   - Program counter, registers
+
+3. 메모리 관련
+
+   - Code, data, stack의 위치 정보
+
+4. 파일 관련
+
+   - Open file descriptors
+
+## 문맥 교환(Context Switch)
+
+- CPU를 한 프로세스에서 다른 프로세스로 넘겨주는 과정
+- CPU가 다른 프로세스에게 넘어갈 때 운영체제는 다음을 수행
+  - CPU를 내어주는 프로세스의 상태를 그 프로세스의 PCB에 저장
+  - CPU를 새롭게 얻는 프로세스의 상태를 PCB에서 읽어옴
+
+1. 프로세스 A -> 커널 모드(system call)함수 -> 프로세스 A => 문맥교환 아님
+2. 프로세스 A -> 커널 모드 -> 프로세스 B => 문맥 교환
+
+문맥 교환의 경우 다른 프로세스로 CPU 전달 시에 cache memory를 휘발 시켜야 한다. => 오버헤드가 크다.
+
+## 스케줄러
+
+### 장기 스케줄러(job scheduler)
+
+- 시작 프로세스 중 어떤 것들을 ready queue로 보낼지 결정
+- 프로세스에 memory(및 각종 자원)을 주는 문제
+- degree of Multipromgramming을 제어
+- time sharing system에는 보통 장기 스케줄러가 없음(무조건 ready)
+
+> degree of multiprogramming => 메모리에 프로세스가 올라가 있는 개수를 제어한다.
+> 너무 많은 프로세스가 메모리에 올라가 있으면 프로세스별 가지는 메모리가 적게되어 필요한 메모리를 얻으려 디스크 연산이 많아져 성능이 떨어질 수 있다.
+> 너무 적은 프로세스가 메모리에 올라가 있어도 다음 프로세스를 CPU가 처리하지 못해 성능이 떨어질 수 있다.
+
+### 단기 스케줄러(CPU scheduler)
+
+- 어떤 프로세스를 다음번에 running 시킬지 결정
+- 프로세스에 CPU 주는 문제
+- 충분히 빨라야함 (millisecond 단위)
+
+### 중기 스케줄러(swapper)
+
+- 여유 공간 마련 위해 프로세스를 통째로 메모리에서 디스크로 쫓아냄
+- 프로세스에게서 memory를 뺏는다
+- degree of multiprogramming을 제어
+
+## Thread
+
+> 프로세스 하나에 CPU 수행 단위만 여러개 두고 있는 것을 쓰레드 라고한다.
+
+같은 일을 하는 프로세스가 여러 개 있다면 모두 가상 메모리로 주소 공간을 할당한다면 메모리 낭비가 되므로 하나의 주소공간에서 프로세스 다른 부분의 code 부분을 실행하기 위한 것
+
+## Thread의 구성
+
+- program counter -> 어느 부분의 코드를 수행하고 있는지 나타냄
+- register set
+- stack space
+
+## Thread가 동료 thread와 공유하는 부분
+
+- code section
+- data section
+- os 자원
+
+## Thread 장점
+
+- 다중 스레드로 구성된 태스크 구조에선 하나의 서버 스레드가 blocked 상태인 동안에도 동일한 태스크 내의 다른 스레드가 실행 되어 빠른 처리를 할 수 있다.
+- 동일한 일을 수행하는 다중 스레드가 협력하여 높은 처리율(throughput)과 성능 향상을 얻을 수 있다.
+- 스레드를 사용하면 병렬성을 높일 수 있다.
 
 [돌아가기](#목차)
