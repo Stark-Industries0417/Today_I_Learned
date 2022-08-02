@@ -33,6 +33,17 @@
    - [프로세스의 특성 분류](#프로세스의-특성-분류)
    - [CPU Scheduler](#cpu-scheduler)
    - [Dispatcher](#dispatcher)
+5. [CPU Scheduling](#5-cpu-scheduling-1)
+
+   - [스케쥴링 성능 척도](#scheduling-criteria성능-척도)
+   - [Scheduling algorithms](#scheduling-algorithms)
+   - [Cpu Burst time 예측](#cpu-burst-time-예측)
+   - [Multilevel-Queue](#multilevel-queue)
+   - [Thread Scheduling](#thread-scheduling)
+
+6. [Process Synchronization](#6-process-synchronization)
+   - [process 동기화 문제 발생하는 상황](#process-동기화-문제-발생하는-상황)
+   - [race condition](#race-condition)
 
 # 1. Introduction to operating systems
 
@@ -400,5 +411,105 @@
 
 - CPU의 제어권을 CPU scheduler에 의해 선택된 프로세스에게 넘긴다.
 - 이 과정을 context switch(문맥 교환)라고 한다.
+
+[돌아가기](#목차)
+
+# 5. CPU Scheduling 1
+
+## Scheduling Criteria(성능 척도)
+
+### 시스템 입장에서의 성능 척도
+
+- CPU utilization(이용료): keep the CPU as busy as possible
+  전체 시간 중 CPU 가 일한 시간의 비율
+- Throughput(처리량): of processes that complete their execution per time unit
+  주어진 시간동안 몇개의 일을 처리했는지
+
+### 프로세스 입장에서의 성능 척도
+
+- Turnaround time(소요시간, 변환시간): amount of time to execute a particular process
+  프로세스가 CPU 사용하고 반답한 시간의 총 시간
+- Waiting time(대기 시간): amount of time a process has been waiting in the ready queue
+  프로세스가 끝나기 까지 ready queue 에서 CPU 할당받기 위해 총 기다린 시간
+- Response time(응답 시간): amount of time it takes from when a request was submitted until the first response is produced. not output
+  ready queue에 들어와서 최초의 CPU 얻기까지의 시간
+
+## Scheduling Algorithms
+
+### FCFS(First-Come First-Served)
+
+> 비 선점형
+
+먼저 온 순서대로 처리
+ex) 은행 번호표
+
+### SJF(Shortest-Job-First)
+
+CPU burst time이 가장 짧은 프로세스에게 먼저 주는 것
+
+- Nonpreemptive: 일단 CPU 잡으면 이번 CPU burst가 완료될 때까지 CPU를 뺏기지않음
+- Preemptive: 현재 프로세스의 남은 burst time 보다 더 짧은 CPU burst time 가지는 새로운 프로세스 도착하면 CPU를 빼앗김
+
+**문제점**
+CPU burst time이 긴 프로세스가 CPU를 할당받지 못할 수 있음
+
+**해결법**
+aging(노화): as time progresses increase the priority of the process
+오래 기다리면 우선순위 높여주는 방식
+
+## CPU Burst Time 예측
+
+- 오로지 추정만 가능하다
+- 과거의 CPU burst time을 이용해서 추정
+
+### Priority Scheduling
+
+- 높은 우선순위 가진 프로세스에게 CPU 할당
+- preemptive
+- nonpreemptice
+
+### Round Robin(RR)
+
+- 각 프로세스는 동일한 크기의 할당 시간 가짐
+- 할당 시간이 지나면 프로세스는 preempted 당하고 ready queue 의 제일 뒤에 가서 다시 줄을 슨다.
+- n개의 프로세스가 ready queue에 있고 할당 시간이 q time unit인 경우 각 프로세스는 최대 q time unit 단위로 CPU 시간의 1/n을 얻는다.
+  => 어떤 프로세스도 (n-1)q time unit 이상 기다리지 않는다.
+
+## Multilevel Queue
+
+- Ready queue를 여러 개로 분할
+  - foreground(interactive) => 사용자와 상호작용이 필요하므로 응답시간이 짧은 RR 스케줄링 알고리즘이 적합
+  - background(batch - no human interaction) => 빠른 응답 요청이 필요하지 않으므로 context switch 오버헤드 줄일 수 있는 FCFS 가 적합하다.
+- 큐에 대한 스케줄링 필요
+  - Fixed priority scheduling
+  - Time slice
+
+## Thread Scheduling
+
+- Local Scheduling
+  User level thread의 경우 사용자 수준의 thread library에 의해 어떤 thread를 스케줄 할지 결정
+  (운영체제는 쓰레드의 존재를 모름)
+- Global Scheduling
+  Kernel level thread의 경우
+  (운영체제가 쓰레드의 존재를 암)
+
+# 6. Process Synchronization
+
+## process 동기화 문제 발생하는 상황
+
+- 공유 데이터의 동시 접근하여 데이터 불일치 문제
+- 일관성 유지 위해 협력 프로세스 간의 실행순서 정해주는 메커니즘 필요
+
+1. kernel 수행 중 인터럽트 발생 시
+2. Process가 system call 하여 kernel mode로 수행 중인데 context switch 일어나는 경우
+3. Multiprocessor에서 shared memory 내의 데이터 접근하는 경우
+   => 해결법
+   1. 커널 내부 공유 데이터에 접근하면 lock 을 걸어 다른 CPU가 접근못하게 하고 변경 후 저장되면 unlock 하는 방법(커널 전체를 lock/unlock 하는 방법 => 비효율적 커널에 하나의 CPU만 들어갈 수 있으므로)
+   2. 한번에 하나의 CPU만이 커널에 들어갈 수 있게 하는 방법
+
+## Race condition
+
+- 여러 프로세스들이 동시에 공유 데이터를 접근하는 상황
+- 데이터의 최종 연산 결과는 마지막에 그 데이터를 다룬 프로세스에 따라 달라짐
 
 [돌아가기](#목차)
