@@ -44,6 +44,14 @@
 6. [Process Synchronization](#6-process-synchronization)
    - [process 동기화 문제 발생하는 상황](#process-동기화-문제-발생하는-상황)
    - [race condition](#race-condition)
+   - [Semaphores](#semaphores)
+   - [프로그램적 해결법의 충족 조건](#프로그램적-해결법의-충족-조건)
+   - [Busy waiting](#busy-waitingspin-lock)
+   - [Semaphores](#semaphores)
+   - [implementation block wake up](#implementation-blockwakeup-version-of-p--v)
+   - [Two types of semaphores](#two-types-of-semaphores)
+   - [Deadlock](#deadlock)
+   - [Starvation](#starvation)
 
 # 1. Introduction to operating systems
 
@@ -511,5 +519,79 @@ aging(노화): as time progresses increase the priority of the process
 
 - 여러 프로세스들이 동시에 공유 데이터를 접근하는 상황
 - 데이터의 최종 연산 결과는 마지막에 그 데이터를 다룬 프로세스에 따라 달라짐
+
+## 프로그램적 해결법의 충족 조건
+
+### Mutual Exclusion (상호 배제)
+
+프로세스 P가 critical section 부분 수행중이면 다른 모든 프로세스들은 그들의 critical section에 들어가면 안된다.
+
+### Progress
+
+아무도 critical section에 있지 않은 상태에서 critical section에 들어가고자 하는 프로세스가 있으면 critical sectioin에 들어가게 해주어야 한다.
+
+### Bounded waiting
+
+프로세스가 critical section에 들어가려고 요청한 후부터 그 요청 허용될 때까지 다른 프로세스들이 critical section에 들어가는 횟수에 한계가 있어야 함
+
+## Busy Waiting(=spin lock)
+
+계속 CPU와 memory 쓰면서 wait
+
+## Semaphores
+
+**Semaphore S**
+S -> 자원의 개수
+
+- integer variable
+- 아래 두 가지 연산에 의해서만 접근 가능
+
+```
+자원 할당
+P(S)
+while(S <= 0) do wait
+s--;
+
+자원 반납
+V(S)
+S++
+```
+
+## Implementation block/wakeup version of P() & V()
+
+```
+P(S)
+S.value --;
+if S.value < 0 {
+  add this process to S.L;
+  block()
+}
+
+V(S)
+S.value ++;
+if(S.value <= 0) {
+  remove a process P from S.L;
+  wakeup(P)
+}
+```
+
+## Two Types of Semaphores
+
+- Counting semaphore
+  - 도메인이 0 이상인 임의의 정수값
+  - 주로 resource counting에 사용
+- Binary semaphore(=mutex)
+  - 0 또는 1 값만 가질 수 있는 semaphore
+  - 주로 mutual exclusion (lock/unlock)에 사용
+
+## DeadLock
+
+- 둘 이상의 프로세스가 서로 상대방에 의해 충족될 수 있는 event를 무한히 기다리는 현상
+
+자원 획득하는 순서를 맞추면 해결 가능
+
+## starvation
+
+프로세스가 suspend 된 이유에 해당하는 세마포어 큐에서 빠져나갈 수 없는 현상
 
 [돌아가기](#목차)
