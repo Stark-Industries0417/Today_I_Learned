@@ -51,7 +51,8 @@
    - [implementation block wake up](#implementation-blockwakeup-version-of-p--v)
    - [Two types of semaphores](#two-types-of-semaphores)
    - [Deadlock](#deadlock)
-   - [Starvation](#starvation)
+   - [Starvation](#starvation) -[Dining Philosophers Problem](#dining-philosophers-problem)
+   - [철학자 문제 해결방안](#해결방안)
 
 # 1. Introduction to operating systems
 
@@ -593,5 +594,15 @@ if(S.value <= 0) {
 ## starvation
 
 프로세스가 suspend 된 이유에 해당하는 세마포어 큐에서 빠져나갈 수 없는 현상
+
+## Dining-Philosophers problem
+
+모든 철학자가 동시에 배가 고파져 왼쪽 젓가락을 집어버린 경우 데드락 발생
+
+## 해결방안
+
+- 4명의 철학자만이 테이블에 동시에 앉을 수 있게 함
+- 젓가락을 두 개 모두 집을 수 있을 때에만 젓가락으 집을 수 있게 한다
+- 짝수(홀수) 철학자는 왼쪽(오른쪽) 젓가락부터 집도록한다.
 
 [돌아가기](#목차)
