@@ -42,6 +42,7 @@
    - [Thread Scheduling](#thread-scheduling)
 
 6. [Process Synchronization](#6-process-synchronization)
+
    - [process 동기화 문제 발생하는 상황](#process-동기화-문제-발생하는-상황)
    - [race condition](#race-condition)
    - [Semaphores](#semaphores)
@@ -53,6 +54,13 @@
    - [Deadlock](#deadlock)
    - [Starvation](#starvation) -[Dining Philosophers Problem](#dining-philosophers-problem)
    - [철학자 문제 해결방안](#해결방안)
+
+7. [Deadlocks(교착 상태)](#7장-deadlocks교착-상태)
+   - [Deadlock](#deadlock)
+   - [Resource](#resource)
+   - [Deadlock example](#deadlock-example)
+   - [Deadlock 발생 4가지 조건](#dadlock-발생의-4가지-조건)
+   - [Deadlock 처리 방법](#deadlock-처리-방법)
 
 # 1. Introduction to operating systems
 
@@ -604,5 +612,67 @@ if(S.value <= 0) {
 - 4명의 철학자만이 테이블에 동시에 앉을 수 있게 함
 - 젓가락을 두 개 모두 집을 수 있을 때에만 젓가락으 집을 수 있게 한다
 - 짝수(홀수) 철학자는 왼쪽(오른쪽) 젓가락부터 집도록한다.
+
+[돌아가기](#목차)
+
+# 7장 Deadlocks(교착 상태)
+
+## Deadlock
+
+일련의 프로세스들이 서로가 가진 자원을 기다리며 block된 상태
+
+## Resource
+
+- 하드웨어, 소프트웨어 등을 포함하는 개념
+- ex) I/O device, CPU cycle, memory space, semaphore 등
+- 프로세스가 자원을 사용하는 절차
+  1. Request
+  2. Allocate
+  3. Use
+  4. Release
+
+## Deadlock example
+
+1. 시스템에 2개의 tape drive 가 있는데
+   프로세스 p1, p2가 하나의 tape drive를 보유한 채 다른 하나를 기다리고 있는 상황
+
+2. 이진 세마포어(뮤텍스) A and B가 있는데 P1, P2 가 있는 상황 중
+   P1 이 p(A), P(B) 를 통해 임계 구역에 들어가고 싶은데
+   P2 는 P(B), P(A) 를 가지고 싶어 두 프로세스가 임계 구역에 들어가지 못하는 상황
+
+## Dadlock 발생의 4가지 조건
+
+1. Mutual exclusion(상호 배제)
+   매 순간 하나의 프로세스만이 자원을 사용할 수 있음
+2. No Preemption(비선점)
+   프로세스는 자원을 스스로 내어놓을 뿐 강제로 빼앗기지 않음
+3. Hold and Wait(보유 대기)
+   자원을 가진 프로세스가 다른 자원을 기다릴 때 보유 자원을 놓지 않고 계속 가지고 있음
+4. Circular wait(순환 대기)
+   자원을 기다리는 프로세스간에 사이클이 형성되어야 함
+   프로세스 p0,p1,p2 ... pn이 있을 때
+   p0은 p1이 가진 자원 기다림
+   p1은 p2가 가진 자원 기다림
+   pn-1은 pn이 가진 자원 기다림
+   Pn은 p0이 가진 자원 기다림
+
+## Deadlock 처리 방법
+
+### Deadlock 미연에 방지하는 방법
+
+- Deadlock Prevention
+  자원 할당 시 Deadlock의 4가지 필요 조건 중 어느 하나가 만족되지 않도록 하는 것
+
+- Deadlock Avoidance
+  - 자원 요청에 대한 부가적인 정보 이용해서 deadlock 가능성 없는 경우에만 자원 할당
+  - 시스템 state가 원래 state로 돌아올 수 있는 경우에만 자원 할당
+
+### Deadlock 생긴 후 처리하는 방법
+
+- Deadlock Detection and recovery
+  Deadlock 발생은 허용하되 그에 대한 detection 루틴 두어 deadlock 발견시 recover
+- Deadlock Ignorance
+  Deadlock을 시스템이 책임지지 않음
+  유닉스 포함한 대부분의 OS가 채택
 
 [돌아가기](#목차)
