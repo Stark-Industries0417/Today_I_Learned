@@ -61,6 +61,12 @@
    - [Deadlock example](#deadlock-example)
    - [Deadlock 발생 4가지 조건](#dadlock-발생의-4가지-조건)
    - [Deadlock 처리 방법](#deadlock-처리-방법)
+8. [Memory management](#8-memory-management)
+   - [Logical address](#logical-addressvirtual-address)
+   - [Physical address](#physical-address)
+   - [주소 바인딩](#주소-바인딩address-binding)
+   - [memory management unit](#memory-management-unitmmu)
+   - [Swapping](#swapping)
 
 # 1. Introduction to operating systems
 
@@ -676,3 +682,51 @@ if(S.value <= 0) {
   유닉스 포함한 대부분의 OS가 채택
 
 [돌아가기](#목차)
+
+# 8. Memory Management
+
+## Logical address(virtual address)
+
+- 프로세스마다 독립적으로 가지는 주 공간
+- 각 프로세스마다 0번지 부 시작
+- CPU가 보는 주소는 logical address
+
+## Physical address
+
+메모리에 실제 올라가는 위치
+
+## 주소 바인딩(Address Binding)
+
+### Compile time binding
+
+- 물리적 메모리 주소가 컴파일 시 알려짐
+- 시작 위치 변경시 재컴파일
+- 컴파일러는 절대 코드 생성
+
+### Load time binding
+
+실행 시에 주소가 결정됨
+
+- Loader의 책임하에 물리적 메모리 주소 부여
+- 컴파일러가 재배치 가능코드를 생성한 경우 가능
+
+### Execution time binding(=Run time binidng)
+
+- 수행이 시작된 이후에도 프로세스의 메모리 상 위치를 옮길 수 있음
+- CPU가 주소 참조할 때마다 binding 점검
+- 하드웨어적인 자원이 필요
+
+## Memory Management Unit(MMU)
+
+logical address 를 physical address로 매핑해 주는 하드웨어 device
+
+- MMU scheme
+  사용자 프로세스가 CPU에서 수행되며 생성해내는 모든 주소값에 대해 base register(relocation register)의 값을 더 한다
+
+- user program
+  logical address만을 다룸
+  실제 physical address를 볼 수 없으며 알 필요가 없음
+
+## Swapping
+
+프로세스를 일시적으로 메모리에서 backing store(디스크)로 쫓아내는 것
