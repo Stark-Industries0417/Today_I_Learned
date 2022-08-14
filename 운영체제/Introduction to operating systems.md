@@ -67,6 +67,9 @@
    - [주소 바인딩](#주소-바인딩address-binding)
    - [memory management unit](#memory-management-unitmmu)
    - [Swapping](#swapping)
+   - [Paging](#paging)
+   - [Page Table](#page-table)
+   - [TLB](#tlb)
 
 # 1. Introduction to operating systems
 
@@ -730,3 +733,30 @@ logical address 를 physical address로 매핑해 주는 하드웨어 device
 ## Swapping
 
 프로세스를 일시적으로 메모리에서 backing store(디스크)로 쫓아내는 것
+
+## Paging
+
+- Process의 가상 메모리를 동일한 사이즈의 page 단위로 나눔
+- 가상 메모리의 내용이 page 단위로 noncontiguaous(비연속적)하게 저장됨
+- 일부는 backing storage에 일부는 physical memory에 저장
+
+1. physical memory를 동일한 크기의 frame으로 나눔
+2. logical memory를 동일 크기의 page로 나눔(frame과 같은 크기)
+3. page table 사용하여 logical address를 physical address로 변환
+4. external fragmentation 발생 안함
+5. internal fragmentation 발생 가능
+
+## Page Table
+
+- 메인 메모리에 상주
+- 모든 메모리 접근 연산에는 2번의 메모리 access 필요
+- page table 접근 1번, 실제 data/instruction 접근 1번
+- 속도 향상 위해 associative register 혹은 translation look-aside buffer(TLB)라 불리는 고속의 lookup hardware cache 사용
+
+## TLB
+
+- 주소 변환을 위한 캐시 메모리
+- page table 중 일부가 TLB에 보관
+- 해당 page가 associative register에 있는 경우 곧바로 frame 얻음
+- 그렇지 않은 경우 main memory에 있는 page table로 부터 frame 얻음
+- 프로세스마다 page table이 따로 있으므로 TLB는 context switch 때 휘발된다.
