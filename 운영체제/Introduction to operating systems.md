@@ -70,6 +70,7 @@
    - [Paging](#paging)
    - [Page Table](#page-table)
    - [TLB](#tlb)
+   - [Segmentation](#segmentation)
 
 # 1. Introduction to operating systems
 
@@ -760,3 +761,13 @@ logical address 를 physical address로 매핑해 주는 하드웨어 device
 - 해당 page가 associative register에 있는 경우 곧바로 frame 얻음
 - 그렇지 않은 경우 main memory에 있는 page table로 부터 frame 얻음
 - 프로세스마다 page table이 따로 있으므로 TLB는 context switch 때 휘발된다.
+
+## Segmentation
+
+프로그램을 의미 단위인 segment로 구성
+
+- 작게는 프로그램을 구성하는 함수 하나하나를 세그먼트로 정의
+- 크게는 프로그램 전체를 하나의 세그먼트로 정의 가능
+- 일반적으로는 code, data, stack 부분이 각각 세그먼트로 정의 됨
+
+세그먼트는 각각 크기가 다르므로 세그먼트 테이블은 limit 과 base 값을 가지고 있다.
