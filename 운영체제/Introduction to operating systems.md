@@ -71,6 +71,7 @@
    - [Page Table](#page-table)
    - [TLB](#tlb)
    - [Segmentation](#segmentation)
+   - [Segmentation with Paging](#segmentation-with-paging)
 
 # 1. Introduction to operating systems
 
@@ -771,3 +772,12 @@ logical address 를 physical address로 매핑해 주는 하드웨어 device
 - 일반적으로는 code, data, stack 부분이 각각 세그먼트로 정의 됨
 
 세그먼트는 각각 크기가 다르므로 세그먼트 테이블은 limit 과 base 값을 가지고 있다.
+
+## Segmentation with Paging
+
+segment 하나를 여러 page 단위로 나눔
+
+- segment-table entry가 segment의 base address 가지고 있는 것이 아닌 segment 구성하는 page table의 base address를 가지고 있음
+- segment 당 page table 존재
+
+allocation 문제 발생하지 않음 -> 메모리에 hole 생기지 않음
