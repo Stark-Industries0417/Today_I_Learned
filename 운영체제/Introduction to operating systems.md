@@ -62,6 +62,7 @@
    - [Deadlock 발생 4가지 조건](#dadlock-발생의-4가지-조건)
    - [Deadlock 처리 방법](#deadlock-처리-방법)
 8. [Memory management](#8-memory-management)
+
    - [Logical address](#logical-addressvirtual-address)
    - [Physical address](#physical-address)
    - [주소 바인딩](#주소-바인딩address-binding)
@@ -72,6 +73,15 @@
    - [TLB](#tlb)
    - [Segmentation](#segmentation)
    - [Segmentation with Paging](#segmentation-with-paging)
+   - [Demand Paging](#demand-paging)
+   - [Page Fault](#page-fault)
+   - [Free Frame이 없는 경우](#free-frame이-없는-경우os가-작업)
+   - [Page Replacement 순서](#page-replacement-순서)
+   - [Optimal Algorithm](#optimal-algorithm---page-fault가-가장-적은-알고리즘)
+   - [FIFO Algorithm](#fifo-algorithm)
+   - [LRU](#lru)
+   - [LFU](#lfu)
+   - [LRU, LFU 알고리즘의 구현](#lru와-lfu-알고리즘의-구현)
 
 # 1. Introduction to operating systems
 
@@ -781,3 +791,100 @@ segment 하나를 여러 page 단위로 나눔
 - segment 당 page table 존재
 
 allocation 문제 발생하지 않음 -> 메모리에 hole 생기지 않음
+
+[돌아가기](#목차)
+
+# 9. Virtual Memory
+
+## Demand Paging
+
+메모리가 페이징 기법 사용 시 실제로 필요할 때 page를 메모리에 올리는 것
+
+- 디스크 I/O 양의 감소
+- Memory 사용량 감소
+- 빠른 응답 시간
+- 더 많은 사용자 수용
+
+### Valid/Invalid bit의 사용
+
+- Invalid의 의미
+  - 사용되지 않는 주소 영역(정해진 가상 메모리를 주어지는데 프로세스가 주어진 메모리를 다 사용하지 않는 경우)
+  - 페이지가 물리적 메모리에 없는 경우
+- 처음엔 모든 page entry가 invalid로 초기화
+- 주소 변환시에 invalid bit으로 set 되어 있으면
+  => page fault 라고 한다.
+
+## Page Fault
+
+- invalid page 접근하면 MMU가 trap 발생시킴
+- Kernel mode로 들어가서 page fault handler가 실행됨
+- 다음 순서대로 page fault 처리
+  1. Invalid reference? (bad address, protection violation) 인지 확인 => abort
+  2. Get an empty page frame(없으면 뺏어온다: replace)
+  3. 해당 페이지를 disk에서 memory로 읽어온다
+     1. disk I/O 끝나기까지 프로세스는 CPU를 preempt 당함 (block)
+     2. Disk read 끝나면 page tables entry에 기록하고
+        valid/invalid bit = valid로 기록
+        ready queue에 프로세스를 insert
+  4. 이 프로세스가 CPU 잡고 다시 running
+  5. 아까 중단되었던 instruction 재개
+
+## Free frame이 없는 경우(OS가 작업)
+
+- Page replacement
+  - 어떤 frame 빼앗아올지 결정해야 함
+  - 곧바로 사용되지 않을 page 쫓아내는 것이 좋음
+  - 동일한 페이지가 여러 번 메모리에서 쫓겨났다가 다시 들어올 수 있음
+- Replacement Algorithm
+  - page-fault rate 최소화하는 것이 목표
+  - 알고리즘의 평가 -> 주어진 page reference string에 대해 page fault를 얼마나 내는지 조사
+  - page reference string: 페이지를 접근한 순서
+
+## Page Replacement 순서
+
+1. sap out victim page
+2. victim page valid-invalid bit을 invalid 로 바꿈
+3. swap demand page in
+4. reset page table for new page to valid
+
+## Optimal Algorithm -> page fault가 가장 적은 알고리즘
+
+page reference string을 미리 알고있다는 가정 하에 이 알고리즘 사용
+
+- 가장 먼 미래에 참조되는 page를 replace
+- 미래의 참조를 어떻게 아는지 -> 실제 시스템에서 사용되는 것은 불가능
+- 다른 알고리즘의 성능에 대한 upper bound 제공(다른 알고리즘의 성능 참고용으로 사용)
+
+## FIFO Algorithm
+
+- 먼저 들어온 것 먼저 내쫓음
+- 메모리 크기를 늘려줘도 성능이 더 나빠지는 상황 발생 가능함
+
+## LRU(Least Recently Used) Algorithm(실제로 가장 많이 사용되는 알고리즘)
+
+- 가장 오래전에 참조된 것을 지움
+
+## LFU(Least Frequently Used) Algorithm
+
+- 참조 횟수가 가장 적은 페이지를 지움
+- 최저 참조 횟수인 page가 여럿 있는 경우
+  - LFU 알고리즘 자체에서는 여러 page 중 임의로 선정
+  - 성능 향상 위해 가장 오래전에 참조된 page 지우게 구현할 수 있다
+
+## LRU와 LFU 알고리즘의 구현
+
+### LRU
+
+더블 링크드 리스트로 구현해서 가장 최근에 참조된 것은 아래쪽으로 보내는 식으로 구현
+replacement 시에는 가장 위에 있는것을 삭제하면 된다.
+=> 시간 복잡도 O(1): 비교할 필요없이 가장 첫번째 것 삭제하면 되므로
+
+### LFU
+
+더블 링크드 리스트로 가장 참조 횟수 적은 page는 위로 참조 횟수 많은 것은 아래로 보내는 식으로 구현
+
+어떤 page가 참조되면 참조 횟수가 1 늘어난 것이므로 다른 page 참조 횟수들과 비교를 하면서 내려가야한다.
+
+시간 복잡도 O(n) 발생 가능
+
+그래서 heap을 사용하여 구현 => O(logn)으로 만들수 있음
