@@ -82,6 +82,11 @@
    - [LRU](#lru)
    - [LFU](#lfu)
    - [LRU, LFU 알고리즘의 구현](#lru와-lfu-알고리즘의-구현)
+   - [Page System](#page-system)
+   - [Clock Algoritym](#clock-algorithm)
+   - [Page frame의 Allocation](#page-frame의-allocation)
+   - [Thrashing](#thrashing)
+   - [Working set model](#working-set-model)
 
 # 1. Introduction to operating systems
 
@@ -888,3 +893,71 @@ replacement 시에는 가장 위에 있는것을 삭제하면 된다.
 시간 복잡도 O(n) 발생 가능
 
 그래서 heap을 사용하여 구현 => O(logn)으로 만들수 있음
+
+## Page System
+
+- page fault인 경우에만 OS가 관여
+- 페이지가 이미 메모리에 존재하는 경우 참조시각 등의 정보를 OS가 알 수 없음
+- O(1)인 LRU의 list 조작조차 불가능
+
+## Clock Algorithm
+
+page system에선 LFU, LRU 같은 알고리즘 사용 불가하므로
+clock algorithm 사용
+
+- LRU의 근사 알고리즘
+- second chance algorithm or NUR(Not Used Recently) or NRU(Not Recently Used)이라 불림
+
+1. page table의 reference bit가 0인 것을 찾을 때까지 포인터를 하나씩 앞으로 이동
+2. 포인터 이동 중 reference bit 1은 모두 0으로 바꿈
+3. Reference bit이 0인 것 찾으면 그 페이지 교체
+
+- 한 바퀴 되돌아와서도(=second chance) 0이면 그때에는 replace 당함
+- 자주 사용되는 페이지라면 second chance가 올 때 1일 것이다.
+
+### Clock algorithm의 개선
+
+- reference bit과 modified bit을 함께 사용
+- reference bit = 1 최근에 참조된 페이지
+- modified bit = 1 -> 쓰기 작업이 이뤄졌으므로 page 내쫓을때 디스크에 변경사항 반영하고 내쫓아야 한다.
+
+modified bit과 reference bit이 0 인 page를 내쫓으면 더 성능향상이 있다.
+
+## Page Frame의 Allocation
+
+각 프로세스에 얼마만큼의 page frame을 할당할 것인지
+
+- Allocation의 필요성
+
+  - 메모리 참조 명령어 수행시 명령어, 데이터 등 여러 페이지 동시 참조
+  - loop 구성하는 page들은 한꺼번에 allocate 되는 것이 유리함
+
+- Allocation scheme
+  1. Equal allocation: 모든 프로세스에 똑같은 갯수 할당
+  2. proportional allocation: 프로세스 크기에 비례하여 할당
+  3. Priority allocation: 프로세스의 priority에 따라 다르게 할당
+
+## Thrashing
+
+- 프로세스의 원활한 수행에 필요한 최소한의 page frame 수를 할당 받지 못한 경우 발생
+- page fault rate이 매우 높아짐
+- CPU utilization 이 낮아짐
+- OS는 MPD(Multiprogramming degree)를 높여야 한다고 판단
+- 또 다른 프로세스가 시스템에 추가됨 (higher MPD)
+- 프로세스는 page의 swap in/swap out으로 매우 바쁨
+- 대부분읭 시간에 CPU는 한가함
+- low throughput
+
+## Working-Set model
+
+### Locality of reference(참조 지역성)
+
+- 프로세스는 특정 시간 동안 일정 장소만을 집중적으로 참조
+- 집중적으로 참조되는 해당 page들의 집합을 locality set이라 함
+
+### Working-set model
+
+- locality에 기반하여 프로세스가 일정 시간 동안 원활하게 수행되기 위해 한꺼번에 메모리에 올라와 있어야 하는 page들의 집합을 Working set이라 정의
+- Working Set 모델에서는 process의 working set 전체가 메모리에 올라와 있어야 수행되고 그렇지 않을 경우 모든 frame을 반납한 후 swap out 한다.
+- Thrashing 방지
+- Multiprogramming degree 결정함
