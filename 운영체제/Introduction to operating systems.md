@@ -88,6 +88,28 @@
    - [Thrashing](#thrashing)
    - [Working set model](#working-set-model)
 
+9. [Virtual Memory](#9-virtual-memory)
+
+   - [Demand Paging](#demand-paging)
+   - [Page Fault](#page-fault)
+   - [Free frame이 없는 경우(OS가 작업)](#free-frame이-없는-경우os가-작업)
+   - [Page Replacement 순서](#page-replacement-순서)
+   - [Optimal Algorithm](#optimal-algorithm---page-fault가-가장-적은-알고리즘)
+   - [FIFO Algorithm](#fifo-algorithm)
+   - [LRU(Least Recently Used) Algorithm](#lruleast-recently-used-algorithm실제로-가장-많이-사용되는-알고리즘)
+   - [LFU(Least Frequently Used)](#lfuleast-frequently-used-algorithm)
+   - [LRU와 LFU 알고리즘의 구현](#lru와-lfu-알고리즘의-구현)
+   - [Page System](#page-system)
+   - [Clock Algorithm](#clock-algorithm)
+   - [Page Frame의 Allocation](#page-frame의-allocation)
+   - [Thrashing](#thrashing)
+   - [Working-Set Model](#working-set-model)
+
+10. [File Systems](#10-file-systems)
+
+- [File and File System](#file-and-file-system)
+- [Directory and Logical Disk](#directory-and-logical-disk)
+
 # 1. Introduction to operating systems
 
 ## 운영체제란?
@@ -961,3 +983,49 @@ modified bit과 reference bit이 0 인 page를 내쫓으면 더 성능향상이 
 - Working Set 모델에서는 process의 working set 전체가 메모리에 올라와 있어야 수행되고 그렇지 않을 경우 모든 frame을 반납한 후 swap out 한다.
 - Thrashing 방지
 - Multiprogramming degree 결정함
+
+[돌아가기](#목차)
+
+# 10. File Systems
+
+## File and File System
+
+### File
+
+- A named collection of related information
+- 일반적으로 비휘발성의 보조기억장치에 저장
+- 운영체제는 다양한 저장 장치를 file이라는 동일한 논리적 단위로 볼 수 있게 해준다.
+- Operation
+  - create, read, write, reposition(Iseek), delete, open, close 등
+
+### File attribute(혹은 파일의 metadata)
+
+open 작업에서 file의 메타데이터를 메모리에 올려놓는다.
+
+- 파일 자체의 내용이 아니라 파일을 관리하기 위한 각종 정보들
+
+  - 파일 이름, 유형, 저장된 위치, 파일 사이즈
+  - 접근 권한(읽기/쓰기/실행), 시간(생성/변경/사용), 소유자 등
+
+### File System
+
+- 운영체제에서 파일을 관리하는 부분
+- 파일 및 파일의 메타데이터, 디렉토리 정보 등을 관리
+- 파일의 저장 방법 결정
+- 파일 보호 등
+
+## Directory and Logical Disk
+
+### Directory
+
+- 파일의 메타데이터 중 일부를 보관하고 있는 일종의 특별한 파일
+- 그 디렉토리에 속한 파일 이름 및 파일 attribute 등
+- operation
+  - search for a file, create a file, delete a file
+  - list a directory, rename a file, traverse the file system
+
+### Partition(=Logical Disk)
+
+- 하나의 (물리적)디스크 안에 여러 파티션 두는게 일반적
+- 여러 개의 물리적인 디스크를 하나의 파티션으로 구성하기도 함
+- 물리적 디스크를 파티션으로 구성한 뒤 각각의 파티션에 file system을 깔거나 swapping 등 다른 용도로 사용할 수 있음
