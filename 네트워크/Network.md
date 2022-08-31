@@ -1,47 +1,74 @@
 # 목차
 
-2. [Application Layer](#2-application-layer)
+- [OSI 7계층](#osi-7계층)
+- [OSI 7계층을 나누는 이유](#osi-7계층을-나누는-이유)
+- [OSI 7계층](#osi-7계층)
+- [물리 계층](#물리-계층)
+- [데이터 링크 계층](#데이터-링크-계층)
+- [네트워크 계층](#네트워크-계층)
+- [전송 계층](#전송-계층)
+- [세션 계층](#세션-계층)
+- [표현 계층](#표현-계층)
+- [응용 계층](#응용-계층)]
 
-- [Application architectures](#application-architectures)
-- [sockets](#sockets)
-- [TCP service](#tcp-service)
-- [UDP service](#udp-service)
+# OSI 7계층
 
-# 2. Application Layer
+## OSI 7계층을 나누는 이유
 
-## Application architectures
+- 표준화를 통해 이질적인 포트 문제나 프로토콜 등으로 인한 문제를 해결하여 비용 절감
+- 계층별의 기능과 통신 과정을 단계별로 나눠 쉽게 알 수 있고 특정한 곳에 이상 생기면 그 단계만 수정할 수 있기 때문
 
-- client-server
-- peer-to-peer(P2P)
+## OSI 7계층
 
-### server
+- 이 모델은 프로토콜을 기능별로 나눈 것
+- 각 계층은 하위 계층의 기능만을 이용하고, 상위 계층에게 기능 제공
+- 프로토콜 스택, 스택은 이러한 계층들로 구성된 프로토콜 시스템이 구현된 시스템을 가리킨다
 
-- always-on host
-- permanent IP address
-- data centers for scaling
+## 물리 계층
 
-### clients
+> 리피터, 케이블, 허브 등
 
-- only communicate with server
-- do not communicate directly with each other
-- may be intermittently connected
-- may have dynamic IP address
+- 전송 단위는 bit 이다.
+- 주로 전기적, 기계적, 기능적 특성을 이용해 통신 케이블로 데이터 전송 역할
+- 단지 데이터를 전기적 신호로 변화해서 주고받는 기능을 진행하는 공간
+  데이터를 전송하는 역할만 진행.
 
-transport 계층 이하는 운영체제가 controll 한다
+## 데이터 링크 계층
 
-## Sockets
+- 물리 계층 통해 송수신 되는 정보의 오류와 흐름 관리하여 안전한 정보의 전달 수행할 수 있도록 도와주는 역할
+- MAC 주소 이용해 통신
+- Frame에 MAC 주소를 부여하고 에러검출, 재전송, 흐름 제어 진행
 
-application 계층과 transport 계층 사이에 존재하는 소켓을 통해 데이터를 보내고 받아들인다.
+## 네트워크 계층
 
-## TCP service:
+- 여러개 노드를 거칠 때마다 경로 찾아주는 역할 하며, 다양한 길이의 데이터를 목적지까지 가장 안전하고 빠르게 전달하는 기능 담당
+- 라우터 통해 이동할 경로 선택하여 IP주소 지정하고, 해당 경로에 따라 패킷 전달
+- 라우팅, 흐름제어, 오류제어, 세그먼테이션 등 수행
+- 전송 단위는 데이터그램(packet) 이다.
 
-- reliable transport between sending and receiving process
-- connection-oriented: 3-handshake 진행
-- flow control: TCP 계층에선 버퍼의 공간이 넘치지 않도록 속도를 조절 시킬 수 있다.
-- congestion control: 네트워크 내에 라우터들의 버퍼가 넘치지 않도록 속도 조절 시킬 수 있음
+## 전송 계층
 
-## UDP service:
+- TCP, UDP 프로토콜 통해 통신 활성화, 포트 열어두고 프로그램들이 전송 할 수 있도록 제공해준다. 이를 통해 양 끝단의 사용자들이 데이터 주고 받을 수 있다.
+- TCP: 신뢰성, 연결지향적
+- UDP: 비신뢰성, 비연결성, 실시간
+- 데이터 단위는 Segment이다
 
-목적지 호스트에서 포트로 전달해주는 역할
+## 세션 계층
 
-- unreliable data transfer
+> API, Socket
+
+- 양 끝단의 응용 프로세스가 통신 관리하기 위한 방법 제공
+- 데이터 통신 위한 논리적 연결 담당
+- TCP/IP 세션을 만들고 없애는 책임 지니고 있음
+
+## 표현 계층
+
+- 데이터 표현에 대한 독립성 제공하고 암호화 역할 담당
+- 파일 인코딩, 명령어를 포장, 압축 암호화 한다.
+
+## 응용 계층
+
+> HTTP, FTP, DNS 등
+
+- 응용 프로세스와 직접 관계하여 일반적인 응용 서비스를 수행
+- 일반적인 응용 서비스는 관련된 응용 프로세스들 사이의 전환 제공
