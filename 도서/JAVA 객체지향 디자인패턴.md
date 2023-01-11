@@ -59,3 +59,365 @@
 [돌아가기](#목차)
 
 
+# 5장 스트래티지 패턴
+
+``` java
+public abstract class Robot {
+    private String name;
+
+    public Robot(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void attack();
+    public void move();
+}
+
+public class TaekwonV extends Robot {
+    public TaekwonV(String name) {
+        super(name);
+    }
+
+    public void attack() {
+        System.out.println("attack");
+    }
+
+    public move() {
+        System.out.println("walk");
+    }
+}
+
+public class Atom extends Robot {
+    public Atom(String name) {
+        super(name);
+    }
+
+    public void atack() {
+        System.out.println("atom attack");
+    }
+
+    public void move() {
+        System.out.println("Atom fly");
+    }
+}
+
+public class Client {
+    public static void main(String[] args) {
+        Robot taekwonV = new TaekwonV("TaekwonV");
+        Robot atom = new Atom("Atom");
+
+        System.out.println("My name is " + taekwonV.getName());
+        taekwonV.move();
+        taekwonV.attack();
+
+        System.out.println();
+
+        System.out.println("My name is " + atom.getName());
+        atom.move();
+        atom.attack();
+    }
+}
+```
+[돌아가기](#목차)
+
+### 문제점 
+
+- 기존 로봇의 공격 또는 이동 방법응ㄹ 수정하려면 어떤 변경 작업을 해야 하는가?
+    ex) 아톰이 날 수는 없고 오직 걷게만 만들고 싶다면? 또는 태권V를 날게 하려면?
+- 새로운 로봇을 만들어 기존의 공격 또는 이동 방법을 추가하거나 수정하려면? 
+    ex) 새로운 로봇으로 지구의 용사 선가드 클래스를 만들어 태권V의 미사일 공격 기능을 추가하려면?
+
+#### 기존 로봇의 공격과 이동 방법을 수정하는 경우
+
+Atom 클래스의 move 메서드 수정
+
+``` java
+public class Atom extends Robot {
+    public Atom(String name) {
+        super(name);
+    }
+
+    public void atack() {
+        System.out.println("atom walk");
+    }
+
+    public void move() {
+        System.out.println("Atom fly");
+    }
+}
+=> 새로운 기능으로 변경하려고 기존 코드의 내용을 수정하므로 OCP에 위배된다.
+    Atom 클래스의 move 메서드와 TaekwonV 클래스의 move 메서드가 동일 기능을 하므로 기능이 중복되는 상황이 발생
+    (중복 코드가 많게되면 나중에 로봇이 많이 추가가 되었을 때 모든 코드를 하나하나 수정해야 한다.)
+```
+
+#### 새로운 로봇에 공격/이동 방법을 추가/수정하는 경우
+
+현재 설계에서는 로봇 자체가 캡슐화 단위 이므로 새로운 로봇을 로봇의 서브 클래스로 추가하기만 하면 된다.
+
+> 로봇이 발전하여 새로운 방식의 이동 기능과 공격 기능은 계속해서 개발된다면 새로운 방식의 이동 기능과 공격 기능을 로봇에게 제공하기 위해선 기존 모든 코드를 수정해야 한다. => OCP 위배가 된다.
+
+#### 해결책
+
+수정 코드
+
+``` java
+public abstract class Robot {
+    private String name;
+    private MovingStrategy movingStrategy;
+    private AttackStrategy attackStrategy;
+
+    public Robot(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void move() {
+        movingStrategy.move();
+    }
+
+    public void attack() {
+        attackStrategy.attack();
+    }
+
+    public void setMovingStrategy(MovingStrategy movingStrategy) {
+        this.movingStrategy = movingStrategy;
+    }
+
+    public void setAttackStrategy(AttackStrategy attackStrategy) {
+        this.attackStrategy = attackStrategy;
+    }
+}
+
+public class Atom extends Robot {
+    public Atom(String name) {
+        super(name);
+    }
+}
+
+public class TaeKwonV extends Robot {
+    public TaeKwonV(String name) {
+        super(name);
+    }
+}
+
+interface MovingStrategy {
+    public void move();
+}
+
+public class WalkingStrategy implements MovingStrategy {
+    public void move() {
+        System.out.println("I can only walk.");
+    }
+}
+
+public class FlyingStrategy implements MovingStrategy {
+    public void move() {
+        System.out.println("I can fly.");
+    }
+}
+
+
+interface AttackStrategy {
+    public void attack();
+}
+
+public class MissileStrategy implements AttackStrategy {
+    public void attack() {
+        System.out.println("I have Missile and can attack with it.");
+    }
+}
+
+public class PunchStrategy implements AttackStrategy {
+    public void attack() {
+        System.out.println("I have strong punch and can attack with it.");
+    }
+}
+
+public class Client {
+    public static void main(String[] args) {
+        Robot taekwonV = new TaeKwonV("TaekwonV");
+        Robot atom = new Atom("Atom");
+
+        taekwonV.setMovingStrategy(new WalkingStrategy());
+        taekwonV.setAttackStrategy(new MissileStrategy());
+
+        atom.setMovingStrategy(new FlyingStrategy());
+        atom.setAttackStrategy(new PunchStrategy());
+    }
+}
+```
+
+전략 패턴 -> 템플릿 콜백 패턴
+
+``` java
+public abstract class Robot {
+    private String name;
+    private MovingStrategy movingStrategy;
+    private AttackStrategy attackStrategy;
+
+    public Robot(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void move() {
+        movingStrategy.move();
+    }
+
+    public void attack() {
+        attackStrategy.attack();
+    }
+
+    public void setMovingStrategy(MovingStrategy movingStrategy) {
+        this.movingStrategy = movingStrategy;
+    }
+
+    public void setAttackStrategy(AttackStrategy attackStrategy) {
+        this.attackStrategy = attackStrategy;
+    }
+}
+
+public class Atom extends Robot {
+    public Atom(String name) {
+        super(name);
+    }
+}
+
+public class TaeKwonV extends Robot {
+    public TaeKwonV(String name) {
+        super(name);
+    }
+}
+
+interface MovingStrategy {
+    public void move();
+}
+
+
+interface AttackStrategy {
+    public void attack();
+}
+
+public class Client {
+    public static void main(String[] args) {
+        Robot taekwonV = new TaeKwonV("TaekwonV");
+        Robot atom = new Atom("Atom");
+
+        taekwonV.setMovingStrategy(new MovingStrategy() {
+            @Override
+            public void move() {
+                System.out.println("I can only walk.");
+            }
+        });
+        taekwonV.setAttackStrategy(new AttackStrategy() {
+            @Override
+            public void attack() {
+                System.out.println("I have Missile and can attack with it.");
+            }
+        });
+
+        atom.setMovingStrategy(new MovingStrategy() {
+            @Override
+            public void move() {
+                System.out.println("I can fly.");
+            }
+        });
+        atom.setAttackStrategy(new AttackStrategy() {
+            @Override
+            public void attack() {
+                System.out.println("I have strong punch and can attack with it.");
+            }
+        });
+    }
+}
+
+**중복된 코드 개선!**
+
+
+``` java
+public abstract class Robot {
+    private String name;
+    private MovingStrategy movingStrategy;
+    private AttackStrategy attackStrategy;
+
+    public Robot(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void move(String moveType) {
+        executeMove(moveType).move();
+    }
+
+    public void attack(String attackType) {
+        executeAttack(attackType).attack();
+    }
+
+    public MovingStrategy executeMove(final String moveType) {
+        return new MovingStrategy() {
+            @Override
+            public void move() {
+                System.out.println(moveType);
+            }
+        }
+    }
+
+    public AttackStrategy executeAttack(final String attackType) {
+        return new AttackStrategy() {
+            @Override
+            public void attack() {
+                System.out.println(attackType);
+            }
+        }
+    }
+    
+}
+
+public class Atom extends Robot {
+    public Atom(String name) {
+        super(name);
+    }
+}
+
+public class TaeKwonV extends Robot {
+    public TaeKwonV(String name) {
+        super(name);
+    }
+}
+
+interface MovingStrategy {
+    public void move();
+}
+
+
+interface AttackStrategy {
+    public void attack();
+}
+
+public class Client {
+    public static void main(String[] args) {
+        Robot taekwonV = new TaeKwonV("TaekwonV");
+        Robot atom = new Atom("Atom");
+
+        taekwonV.move("I can walk.");
+        taekwonV.attack("I have sword");
+
+        atom.move("I can fly.");
+        atom.attack("I shot Missile");
+    }
+}
+```
+[돌아가기](#목차)
