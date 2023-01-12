@@ -427,3 +427,71 @@ public class Client {
 }
 ```
 [돌아가기](#목차)
+
+# 6장 싱글턴 패턴
+
+``` java
+
+public class Printer {
+    private static Printer printer = null;
+    private Printer() {}
+
+    public static Printer getPrinter() {
+        if (printer == null) {
+            printer = new Printer();
+        }
+        return printer;
+    }
+}
+
+=> 동기화 문제 발생
+```
+
+### 해결책
+- 정적 변수에 인스턴스를 만들어 바로 초기화 하는 방법
+
+``` java
+public class Printer {
+    private static Printer printer = new Printer();
+    private int counter = 0;
+    private Printer() {}
+
+    public static Printer getPrinter() {
+        return printer;
+    }
+
+    public void print(String str) {
+        counter++;
+        System.out.println(str);
+    }
+}
+```
+   
+- 인스턴스를 만드는 메서드에 동기화 하는 방법
+``` java
+public class Printer {
+    private static Printer printer = null;
+    private Printer() {}
+
+    public synchronized static Printer getPrinter() {
+        if (printer == null) {
+            printer = new Printer();
+        }
+        return printer;
+    }
+
+    public void print(String str) {
+        counter++
+        System.out.println(str);
+    }
+}
+=> 다중 쓰레드가 하나뿐인 counter 변수 값에 동시에 갱신하기 때문에 카운팅 안됨
+
+public void print(String str) {
+    synchronized(this) {
+        counter++;
+        System.out.println(str + counter)
+    }
+}
+```
+
