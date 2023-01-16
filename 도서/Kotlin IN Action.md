@@ -526,3 +526,54 @@ fun readNumber(reader: BufferedReader) {
 
 
 [돌아가기](#목차)
+
+
+# 3장 함수 정의와 호출
+
+### 함수를 호출하기 쉽게 만들기
+
+``` kotlin
+fun main() {
+    val list = listOf(1, 2, 3)
+    println(joinToString(list, "; ", "(", ")"))
+}  
+
+fun <T> joinToString(
+    collection: Collection<T>,
+    separator: String,
+    prefix: String,
+    postfix: String
+): String {
+    val result = StringBuilder(prefix)
+
+    for((idx, elem) in collection.withIndex()) {
+        if(idx > 0) result.append(separator)
+        result.append(elem)
+    }
+    result.append(postfix)
+    return result.toString()
+}
+
+디폴트 파라미터 지정
+
+fun <T> joinToString(
+    collection: Collection<T>,
+    separator: String = ", ",
+    prefix: String = "",
+    postfix: String = ""
+)
+
+=> 함수 호출할 때 모든 인자를 쓸 수도 있고, 일부 생략할 수도 있다.
+
+joinToString(list, ", ", "", "")
+joinToString(list)
+joinToString(list, "; )
+
+이름 붙인 인자를 사용하는 경우, 인자 목록의 중간에 있는 인자를 생략하고 지정하고 싶은 인자를 이름 붙여서 순서와 관계없이 지정할 수 있다.
+ex) joinToString(list, postfix=";", prefix="# ")
+```
+
+[돌아가기](#목차)
+
+
+
