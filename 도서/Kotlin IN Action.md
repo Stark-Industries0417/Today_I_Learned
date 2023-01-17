@@ -23,6 +23,11 @@
 - [코틀린의 예외 처리](#코틀린의-예외-처리)
 - [try, catch, finally](#try-catch-finally)
 
+[3장 함수 정의와 호출](#3장-함수-정의와-호출)
+- [함수를 호출하기 쉽게 만들기](#함수를-호출하기-쉽게-만들기)
+- [최상위 프로퍼티](#최상위-프로퍼티)
+- [메서드를 다른 클래스에 추가: 확장 함수와 확장 프로펖티](#메서드를-다른-클래스에-추가-확장-함수와-확장-프로퍼티)
+
 # 1장 코틀린이란 무엇이며, 왜 필요한가?
 
 ### 코틀린 맛보기
@@ -575,5 +580,53 @@ ex) joinToString(list, postfix=";", prefix="# ")
 
 [돌아가기](#목차)
 
+
+### 최상위 프로퍼티
+
+``` kotlin
+var opCount = 0
+
+fun performOperation() {
+    opCOunt++
+}
+
+fun reportOperationCount() {
+    println("Operation performed $opCount times");
+}
+```
+
+**최상위 프로퍼티도 다른 모든 프로퍼티 처럼 접근자 메서드를 통해 자바 코드에 노출된다.**
+**val의 경우 게터, var의 경우 게터와 세터가 생긴다.**
+
+``` kotlin
+const val UNIX_LINE_SEPARATOR = "\n" == public static final String UNIX_LINE_SEPARATOR;
+```
+[돌아가기](#목차)
+
+### 메서드를 다른 클래스에 추가: 확장 함수와 확장 프로퍼티
+
+> 확장 함수란?   
+어떤 클래스의 멤버 메서드인 것처럼 호출할 수 있지만 그 클래스의 밖에 선언된 함수이다.
+
+``` kotlin
+package Strings
+
+fun String.lastChar(): Char = this.get(this.length-1)
+
+확장 함수 호출 방법
+println("Kotlin".lastChar()) 
+=> Kotlin 이 수신 객체, String이 수신 객체 타입이다.
+
+```
+수신 객체 타입: 추가하려는 함수 이름 앞에 확장할 클래스의 이름을 덧붙이는 것   
+수신 객체: 확장 함수가 호출되는 대상이 되는 값(this) (그 클래스에 속한 인스턴스 객체)
+
+``` kotlin
+fun String.lastChar(): Char = get(length-1)
+
+일반 메서드의 본문에서 this를 사용할 때와 마찬가지로 확장 함수 본문에도 this를 쓸 수 있다.
+```
+
+[돌아가기](#목차)
 
 
