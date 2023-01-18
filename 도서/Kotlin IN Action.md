@@ -26,7 +26,9 @@
 [3장 함수 정의와 호출](#3장-함수-정의와-호출)
 - [함수를 호출하기 쉽게 만들기](#함수를-호출하기-쉽게-만들기)
 - [최상위 프로퍼티](#최상위-프로퍼티)
-- [메서드를 다른 클래스에 추가: 확장 함수와 확장 프로펖티](#메서드를-다른-클래스에-추가-확장-함수와-확장-프로퍼티)
+- [메서드를 다른 클래스에 추가: 확장 함수와 확장 프로퍼티](#메서드를-다른-클래스에-추가-확장-함수와-확장-프로퍼티)
+- [임포트와 확장 함수](#임포트와-확장-함수)
+- [확장 함수로 유틸리티 함수 정의](#확장-함수로-유틸리티-함수-정의)
 
 # 1장 코틀린이란 무엇이며, 왜 필요한가?
 
@@ -630,3 +632,52 @@ fun String.lastChar(): Char = get(length-1)
 [돌아가기](#목차)
 
 
+### 임포트와 확장 함수
+
+**확장 함수를 사용하기 위해서는 그 함수를 다른 클래스나 함수와 마찬가지로 임포트 해야 한다.**
+
+``` kotlin
+import strings.lastChar
+import strings.*
+
+as 키워드를 사용하면 임포트한 클래스나 함수를 다른 이름으로 부를 수 있다.
+import strings.lastChar as last
+
+val c = "Kotlin".last()
+
+자바에서 확장 함수 호출
+
+확장 함수를 StringUtil.kt 파일에 정의 했다면
+char c = StringUtil.Kt.lastChar("Java");
+이런식으로 자바에서 확장함수를 사용할 수 있다.
+```
+
+[돌아가기](#목차)
+
+### 확장 함수로 유틸리티 함수 정의
+
+``` kotlin
+fun <T> Collection<T>.joinToString(
+    separator: String = ", ",
+    prefix: String = "",
+    postfix: String = ""
+): String {
+    val result = StringBuilder(prefix)
+    for(idx, elem) in this.withIndex()) {
+        if(idx > 0) result.append(separator)
+        result.append(elem)
+    }
+
+    result.append(postfix)
+    return result.toString()
+}
+
+fun main() {
+    val list = listOf(1, 2, 3)
+    println(list.joinToString(separator = "; ", prefix = "(", postfix = ")"))
+}
+=> (1; 2; 3)
+```
+**확장 함수가 정적 메서드와 같은 특징을 가지므로 확장 함수를 하위 클래스에서 오버라이드 할 순 없다.**
+
+[돌아가기](#목차)
