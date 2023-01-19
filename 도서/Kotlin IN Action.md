@@ -29,6 +29,8 @@
 - [메서드를 다른 클래스에 추가: 확장 함수와 확장 프로퍼티](#메서드를-다른-클래스에-추가-확장-함수와-확장-프로퍼티)
 - [임포트와 확장 함수](#임포트와-확장-함수)
 - [확장 함수로 유틸리티 함수 정의](#확장-함수로-유틸리티-함수-정의)
+- [확장 함수는 오버라이드 할 수 없다.](#확장-함수는-오버라이드-할-수-없다)
+- [확장 프로퍼티](#확장-프로퍼티)
 
 # 1장 코틀린이란 무엇이며, 왜 필요한가?
 
@@ -681,3 +683,71 @@ fun main() {
 **확장 함수가 정적 메서드와 같은 특징을 가지므로 확장 함수를 하위 클래스에서 오버라이드 할 순 없다.**
 
 [돌아가기](#목차)
+
+### 확장 함수는 오버라이드 할 수 없다
+
+``` kotlin
+open class View {
+    open fun click() = println("View Clicked")
+}
+
+class Button: View() {
+    override fun click() = println("Button clicked")
+}
+
+fun main() {
+    val view: View = Button()
+    view.click()
+}
+
+>> Button Clicked
+
+view에 저장된 값의 실제 타입에 따라 호출할 메서드가 결정된다.
+```
+
+확장 함수 오버라이드
+``` kotlin
+open class View {
+    open fun click() = println("View Clicked")
+}
+
+class Button: View() {
+    override fun click() = println("Button clicked")
+}
+
+fun View.showOff() = println("I'm a view!")
+fun Button.showOff() = println("I'm a button!")
+
+fun main() {
+    val view: View = Button()
+    view.showOff()
+}
+
+>> I'm a view!
+
+view가 가리키는 객체의 실제 타입이 Button이지만, 이 경우 view의 타입이 View이기 때문에 무조건 View의 확장 함수가 호출된다.
+```
+**확장 함수를 static 메서드로 컴파일 하기 때문에 오버라이딩이 안된다.**
+
+[돌아가기](#목차)
+
+
+### 확장 프로퍼티
+
+``` kotlin
+var StringBuilder.lastChar: Char
+    get() = get(length - 1)  <- 프로퍼티 게터
+    set(value: Char) {       <- 프로퍼티 세터
+        this.setCharAt(length - 1, value)
+    }
+
+fun main() {
+    val sb = StringBuilder("Kotlin?")
+    sb.lastChar =  '!'
+    println(sb)
+}
+>>> Kotlin!
+
+기본 게터 구현을 제공할 수 없으므로 최소한 게터는 꼭 정의를 해야한다.
+```
+
