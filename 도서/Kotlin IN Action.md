@@ -31,6 +31,12 @@
 - [확장 함수로 유틸리티 함수 정의](#확장-함수로-유틸리티-함수-정의)
 - [확장 함수는 오버라이드 할 수 없다.](#확장-함수는-오버라이드-할-수-없다)
 - [확장 프로퍼티](#확장-프로퍼티)
+- [컬렉션 처리: 가변 길이 인자, 중위 함수 호출, 라이브러리 지원](#컬렉션-처리-가변-길이-인자-중위-함수-호출-라이브러리-지원)
+- [문자열과 정규식 다루기](#문자열과-정규식-다루기)
+    - [문자열 나누기](#문자열-나누기)
+    - [정규식과 3중 따옴표로 묶은 문자열](#정규식과-3중-따옴표로-묶은-문자열)
+- [코드 다듬기: 로컬 함수와 확장](#코드-다듬기-로컬-함수와-확장)
+
 
 # 1장 코틀린이란 무엇이며, 왜 필요한가?
 
@@ -751,3 +757,205 @@ fun main() {
 기본 게터 구현을 제공할 수 없으므로 최소한 게터는 꼭 정의를 해야한다.
 ```
 
+### 컬렉션 처리: 가변 길이 인자, 중위 함수 호출, 라이브러리 지원
+
+컬렉션 처리 시 쓸 수 있는 코틀린 표준 라이브러리 함수   
+- vararg 키워드 사용하면 호출 시 인자 개수가 달라질 수 있는 함수를 정의할 수 있다.
+- 중위 함수 호출 구문을 사용하면 인자가 하나뿐인 메서드를 간편하게 호출할 수 있다.
+- 구조 분해 선언 사용하면 복합적인 값 분해해서 여러 변수에 나눠 담을 수 있따.
+
+#### 가변 인자 함수: 인자의 개수가 달라질 수 있는 함수 정의
+
+``` kotlin
+val list = listOf(2, 3, 5, 7, 11)
+
+fun listOf<T>(vararg values: T): List<T> { ... }
+
+자바에서 타입 뒤에 ...를 붙이는 대신 코틀린에선 파라미터 앞에 vararg 변경자를 붙인다.
+
+fun main(args: Array<String>) {
+    val list = listOf("args: ", *args) <- 스프레드 연산자가 배열의 내용을 펼쳐준다.
+    println(list)
+}
+
+스프레드 연산자를 통해 배열에 들어있는 값과 다른 여러 값을 함께 써서 함수를 호출할 수 있음을 보여준다.
+```
+
+#### 값의 쌍 다루기: 중위 호출과 구조 분해 선언 
+
+맵을 만들려면 mapOf 함수를 사용한다.
+
+``` kotlin
+val map = mapOf(1 to "one", 7 to "seven", 53 to "fifty-three")
+
+to는 to라는 일반 메서드를 호출한 것이다.
+중위 호출 시에는 수신 객체와 유일한 메서드 인자 사이에 메서드 이름을 넣는다.
+
+1.to("one") <- "to" 메서드를 일반적인 방식으로 호출함
+1 to "one"  <- "to" 메서드를 중위 호출 방식으로 호출함
+```
+
+**함수를 중위 호출에 사용하게 허용하고 싶으면 infix 변경자를 함수 선언 앞에 추가해야 한다.**
+
+``` kotlin
+infix fun Any.to(other: Any) = Pair(this, other)
+```
+
+to 함수는 Pair의 인스턴스를 반환한다.
+> Pair란   
+코틀린 표준 라이브러리 클래스로, 이름대로 두 원소로 이뤄진 순서쌍을 표현한다.
+
+```kotlin
+val (number, name) = 1 to "one" => 구조 분해 선언 이라고 한다.
+```
+[돌아가기](#목차)
+
+## 문자열과 정규식 다루기
+
+### 문자열 나누기
+
+``` java
+"12.345-6.A".split(".")
+
+>> [12, 345-6, A] 라고 예상하지만 자바의 split 메서드는 빈 배열을 반환한다.
+
+split의 구분 문자열은 정규식 이기 때문에 마침표는 모든 무낮를 나타내는 정규식으로 해석되었다.
+```
+
+``` kotlin
+"12.345-6.A".split("\\.|-".toRegex()) <- 정규식을 명시적으로 만듬
+>> [12, 345, 6, A]
+
+"12.345-6.A".split(".", "-")
+>> [12, 345, 6, A]
+```
+
+[돌아가기](#목차)
+
+
+### 정규식과 3중 따옴표로 묶은 문자열
+
+#### String 확장 함수를 사용해 경로 파싱하기
+
+``` kotlin
+fun parsePath(path: String) {
+    val directory = path.substringBeforeLast("/")
+    val fullName = path.substringAfterlast("/")
+    val fileName = fullName.substringBeforeLast(".")
+    val extension = fullName.substringAfterLast(".")
+
+    println("Dir: $directory, name: $fileName, ext: $extension")
+}
+
+parsePath("/Users/yole/kotlin-book/chapter.adoc")
+
+>> Dir: /Users/yole/kotlin-book, name: chapter, ext: adoc
+```
+
+
+[돌아가기](#목차)
+
+## 코드 다듬기: 로컬 함수와 확장
+
+#### 코드 중복을 보여주는 예제
+
+``` kotlin
+class User(val id: Int, val name: String, val address: String)
+
+fun saveUser(user: User) {
+    if(user.name.isEmpty()) {
+        throw IllegalArgumentException(
+            "Can't save user ${user.id}: empty Name"
+        )
+    }
+
+    if(user.address.isEmpty()) {
+        throw IllegalArgumentException(
+            "Can't save user ${user.id}: empty Address"
+        )
+    }
+}
+
+saveUser(User(1, "", ""))
+
+>> javja.lang.IllegalArgumentException: Can't save user 1: empty Name
+
+클래스가 사용자의 필드를 검증할 때 필요한 여러 경우를 하나씩 처리하는 메서드로 넘쳐 날 수 있다.
+```
+
+#### 로컬 함수를 사용해 코드 중복 줄이기
+
+``` kotlin
+
+class User(val id: Int, val name: String, val address: String)
+
+fun saveUser(user: User) {
+    fun validate(user: User,        <- 한 필드 검증하는 로컬 함수 정의
+                    value: String,
+                    fieldName: String)
+            {
+            if(value.isEmpty()) {
+                throw IllegalArgumentException(
+                    "Can't save user ${user.id}: empty $fieldName"
+                )
+            }
+        }
+
+    validate(user, user.name, "Name")
+    validate(user, user.address, "Address")
+}
+```
+
+#### 로컬 함수에서 바깥 함수의 파라미터 접근하기
+
+``` kotlin
+class User(val id: Int, val name: String, val address: String) 
+
+fun saveUser(user: User) {
+    fun validate(value: String, fieldName: String) <- saveUser 함수의 user 파라미터를 중복 사용하지 않는다. {
+        if (value.isEmpty()) {
+            throw IllegalArgumentException(
+                "Can't save user ${user.id}: " + <- 바깥 함수의 파라미터에 직접 접근 가능
+                "empty $fieldName"
+            )
+        }
+    }
+
+    validate(user.name, "Name")
+    validate(user.address, "Address")
+}
+```
+
+#### 검증 로직을 확장 함수로 추출하기
+
+``` kotlin
+class User(val id: Int, val name: String, val address: String)
+
+fun User.validateBeforeSave() {
+    fun validate(value: String, fieldName: String) {
+        if(value.isEmpty()) {
+            throw IllegalArgumentException(
+                "Can't save user $id: empty $fieldName"  <- User의 프로퍼티 직접 사용 가능
+            )
+        }
+    }
+
+    validate(name, "Name")
+    validate(address, "Address")
+}
+
+fun saveUser(user: User) {
+    user.validateBeforeSave() <- 확장 함수 호출
+
+    // user를 데이터베이스에 저장
+}
+```
+
+> 검증 로직은 User를 사용하는 다른 곳에서는 쓰이지 않는 기능이기 때문에 User에 포함시키고 싶지 않다.
+
+
+확장 함수를 로컬 함수로 정의할 수 있다. => User.validateBeforeSave를   
+saveUser 내부에 로컬 함수로 넣을 수 있다. 하지만 중첩된 함수의 깊이가 깊어지면 코드를   
+읽기 어려워 지므로 **한 단계만 함수를 중첩**시키라고 권장한다.
+
+[돌아가기](#목차)
