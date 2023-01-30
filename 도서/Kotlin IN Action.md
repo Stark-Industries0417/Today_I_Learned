@@ -37,6 +37,12 @@
     - [정규식과 3중 따옴표로 묶은 문자열](#정규식과-3중-따옴표로-묶은-문자열)
 - [코드 다듬기: 로컬 함수와 확장](#코드-다듬기-로컬-함수와-확장)
 
+[4장 클래스, 객체, 인터페이스](#4장-클래스-객체-인터페이스)
+- [코틀린 인터페이스](#코틀린-인터페이스)
+    - [동일한 메서드를 구현하는 다른 인터페이스 정의](#동일한-메서드를-구현하는-다른-인터페이스-정의)
+- [open, final, abstract 변경자: 기본적으로 final](#open-final-abstract-변경자-기본적으로-final)
+    - [오버라이드 금지하기](#오버라이드-금지하기)
+    - [추상 클래스 정의하기](#추상-클래스-정의하기)
 
 # 1장 코틀린이란 무엇이며, 왜 필요한가?
 
@@ -957,5 +963,130 @@ fun saveUser(user: User) {
 확장 함수를 로컬 함수로 정의할 수 있다. => User.validateBeforeSave를   
 saveUser 내부에 로컬 함수로 넣을 수 있다. 하지만 중첩된 함수의 깊이가 깊어지면 코드를   
 읽기 어려워 지므로 **한 단계만 함수를 중첩**시키라고 권장한다.
+
+[돌아가기](#목차)
+
+# 4장 클래스, 객체, 인터페이스
+
+## 4.1 클래스 계층 정의
+
+### 코틀린 인터페이스
+   
+자바8 인터페이스와 비슷하게 추상 메서드와 구현이 있는 메서드도 정의할 수 있다.
+
+> 인터페이스에는 아무런 상태도 들어갈 수 없다.
+
+``` kotlin
+
+interface Clickable {
+    fun click()
+}
+
+class Button : Clickable {
+    override fun click() = println("I was clicked")
+}
+
+Button().click()
+
+>> Iwas clicked
+
+코틀린에서는 자바와 달리 override 변경자를 꼭 사용해야 한다.
+```
+
+#### 동일한 메서드를 구현하는 다른 인터페이스 정의
+
+``` kotlin
+interface Clickable {
+    fun click()
+    fun showOff() = println("I'm clickable!")
+}
+
+interface Focusable {
+    fun setFocus(b: Boolean) = 
+        println("I ${if (b) "got" else "lost"} focus.")
+    
+    fun showOff() = println("I'm focusable!")
+}
+
+class Button : Clickable, Focusable {
+    override fun click() = println("I was clicked")
+    override fun showOff() {
+        super<Clickable>.showOff()
+        super<Focusable>.showOff()
+    }
+}
+
+이름과 시그니처가 같은 멤버 메서드에 대해 둘 이상의 디폴트 구현이 있는 경우 인터페이스를 구현하는 하위 클래스에서 명시적으로 새로운 구현을 제공해야 한다.
+
+fun main(args: Array<String> {
+    val button = Button()
+
+    button.showOff()
+    button.setFocus(true)
+    button.click()
+})
+
+>> I'm clickable!
+I'm focusable!
+I got focus
+```
+
+[돌아가기](#목차)
+
+
+### open, final, abstract 변경자: 기본적으로 final
+
+> 상속을 위한 설계와 문서를 갖추거나, 그럴 수 없다면 상속을 금지하라   
+하위 클래스에서 오버라이드하게 의도된 클래스와 메서드가 아니라면 모두 final로 만들어야 한다.
+
+**코틀린의 클래스와 메서드는 기본적으로 final 이다.**
+
+어떤 클래스와 메서드의 오버라이드를 허용하고 싶다면 open 변경자를 붙여야 한다.
+
+#### 오버라이드 금지하기
+``` kotlin
+open class RichButton : Clickable {
+    final override fun click() {}
+    
+    오버라이드 한 메서드를 하위 클래스에서 오버라이드 하지 못하게 하기 위해 final 붙임
+}
+
+override 메서드나 프로퍼티는 기본적으로 열려있음
+```
+
+[돌아가기](#목차)
+
+
+#### 추상 클래스 정의하기
+
+추상 클래스의 추상 멤버를 오버라이드 하는게 보통이기 때문에 추상 멤버는 항상 열려있다.   
+=> open 변경자를 명시할 필요가 없다.
+
+``` kotlin
+abstract class Animated { <- 이 클래스는 추상 클래스이다. 인스턴스 만들 수 없음
+    abstract fun animate() <- 추상 함수. 구현이 없으므로 하위 클래스에서 반드시 오버라이드 해야한다.
+}
+
+추상 클래스에 속했더라도 비추상 함수는 기본적으로 파이널이지만 원한다면 open으로
+오버라이드를 허용할 수 있다.
+open fun stopAnimating() {}
+
+fun animateTwice() {}
+
+```
+
+> 인터페이스 멤버의 경우 final, open, abstract를 사용하지 않는다.   
+인터페이스 멤버는 항상 열려 있으며 final로 변경할 수 없다.   
+인터페잉스 멤버에게 본문이 없으면 자동으로 추상 멤버가 된다.
+
+
+|변경자|이 변경자가 붙은 멤버는...|설명|
+|---|---|---|
+|final|오버라이드할 수 없음|클래스 멤버의 기본 변경자다.|
+|open|오버라이드할 수 있음|반드시 open을 명시해야 오버라이드할 수 있다.|
+|abstract|반드시 오버라이드해야 함|추상 클래스의 멤버에만 이 변경자를 붙일 수 있다. 추상 멤버에는 구현이 있으면 안된다.|
+|override|상위 클래스나 상위 인스턴스의 멤버를 오버라이드 하는 중|오버라이드하는 멤버는 기본적으로 열려있다. 하위 클래스의 오버라이드를 금지하려면 final을 명시해야 한다.|
+
+
 
 [돌아가기](#목차)
