@@ -43,6 +43,8 @@
 - [open, final, abstract 변경자: 기본적으로 final](#open-final-abstract-변경자-기본적으로-final)
     - [오버라이드 금지하기](#오버라이드-금지하기)
     - [추상 클래스 정의하기](#추상-클래스-정의하기)
+-[가시성 변경자: 기본적으로 공개](#가시성-변경자-기본적으로-공개)
+- [접근자의 가시성 변경](#접근자의-가시성-변경)
 
 # 1장 코틀린이란 무엇이며, 왜 필요한가?
 
@@ -1088,5 +1090,56 @@ fun animateTwice() {}
 |override|상위 클래스나 상위 인스턴스의 멤버를 오버라이드 하는 중|오버라이드하는 멤버는 기본적으로 열려있다. 하위 클래스의 오버라이드를 금지하려면 final을 명시해야 한다.|
 
 
+
+[돌아가기](#목차)
+
+### 가시성 변경자: 기본적으로 공개
+
+|변경자|클래스 멤버|최상위 선언|
+|---|---|---|
+|public(기본 가시성)|모든 곳에서 볼 수 있다|모든 곳에서 볼 수 있음|
+|internal|같은 모듈 안에서만 볼 수 있음|같은 모듈 안에서만 볼 수 있음|
+|protected|하위 클래스 안에서만 볼 수 있음|(최상위 선언에 적용할 수 없음)|
+|private|같은 클래스 안에서만 볼 수 있음|같은 파일 안에서만 볼 수 있음|
+
+``` kotlin
+internal open class TalkativeButton : Focusable {
+    private fun yell() = println("Hey!")
+    protected fun whisper() = println("Let's talk!")
+}
+
+fun TalkativeButton.giveSpeech() {
+    yell()
+    whisper()
+}
+
+fun TalkativeButton.giveSpeech() { <- 오류: "public" 멤버가 자신의 internal 수신 타입인 "TalkativeButton"을 호출함
+    yell() <- 오류: "yell"에 접근할 수 없음 "yell"은 TalkativeButton의 private 멤버 이기 때문
+    
+    whisper() 오류: whisper에 접근할 수 없음 protected 멤버이기 때문
+}
+
+public 함수 안에서 가시성이 더 낮은 타입을 참조하지 못하게 한다.
+
+giveSpeech 확장 함수의 가시성을 internal로 바꾸거나, 
+TalkativeButton 클래스의 가시성을 public으로 바꿔야 한다.
+```
+
+[돌아가기](#목차)
+
+### 접근자의 가시성 변경
+
+``` kotlin
+class LengthCounter {
+    var counter: Int = 0
+        private set
+    fun addWord(word: String) {
+        conuter += word.length
+    }
+}
+
+외부 코드에서 길이의 합을 마음대로 바꾸지 못하게 클래스 내부에서만 길이를 변경하게 만들기 위해
+private set을 통해 가시성을 제한한다.
+```
 
 [돌아가기](#목차)
