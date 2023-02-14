@@ -45,6 +45,8 @@
     - [추상 클래스 정의하기](#추상-클래스-정의하기)
 -[가시성 변경자: 기본적으로 공개](#가시성-변경자-기본적으로-공개)
 - [접근자의 가시성 변경](#접근자의-가시성-변경)
+- [클래스 위임 사용하기](#클래스-위임-사용하기)
+- [object를 통해 싱글턴 클래스 쉽게 만들기, 예시](#object-를-통해-싱글턴-클래스-쉽게-만들기)
 
 # 1장 코틀린이란 무엇이며, 왜 필요한가?
 
@@ -1143,3 +1145,57 @@ private set을 통해 가시성을 제한한다.
 ```
 
 [돌아가기](#목차)
+
+### 클래스 위임 사용하기
+
+``` kotlin
+class CountingSet<T>(
+    val innerSet: MutableCollection<T> = HashSet<T>()
+): MutableCollection<T> by innerSet { <- MutableCollection의 구현을 innerSeet에게 위임
+    var objectsAdded = 0
+
+
+    // 아래 두 메서드는 위임하지 않고 새로운 구현을 제공
+    override fun add(element: T): Boolean {
+        objectsAdded++
+        return innerSet.add(element)
+    }
+
+    override fun addAll(c: Collection<T>): Boolean {
+        objectsAdded += c.size
+        return innerSet.addAll(c)
+    }
+}
+
+val cset = CountingSet<Int>()
+cset.addAll(listOf(1, 1, 2))
+println("${cset.objectsAdded} objects were added, ${cset.size} remain")
+
+>> 3 objects were added, 2 remain
+
+add와 addAll을 오버라이드 해서 카운터를 증가시키고,
+MutableCollection 인터페이스의 나머지 메서드는 내부 컨테이너(innerSet)에게 위임한다.
+```
+
+> CountingSet에 MutableCollection의 구현 방식에 대한 의존관계가 생기지 않고 있다.
+
+[돌아가기](#목차)
+
+### object 를 통해 싱글턴 클래스 쉽게 만들기
+
+``` kotlin
+data class Person(val name: String) {
+    object NameComparator: Comparator<Person> {
+        override fun compare(p1: Person, p2: Person): Int =
+            p1.name.compareTo(p2.name)
+    }
+}
+
+val persons = listOf(Person("Bob"), Person("Alice"))
+println(persons.sortedWith(Person.NameComparator))
+
+>> [Person(name=Alice), Person(name=Bob)]
+```
+
+> 코틀린 object를 자바에서 사용하기
+INSTANCE 키워드를 사용하면 된다.
