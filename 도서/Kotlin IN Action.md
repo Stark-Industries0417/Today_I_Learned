@@ -47,6 +47,7 @@
 - [접근자의 가시성 변경](#접근자의-가시성-변경)
 - [클래스 위임 사용하기](#클래스-위임-사용하기)
 - [object를 통해 싱글턴 클래스 쉽게 만들기, 예시](#object-를-통해-싱글턴-클래스-쉽게-만들기)
+- [동반 객체: 팩토리 메서드와 정적 멤버가 들어갈 장소](#동반-객체-팩토리-메서드와-정적-멤버가-들어갈-장소)
 
 # 1장 코틀린이란 무엇이며, 왜 필요한가?
 
@@ -1199,3 +1200,42 @@ println(persons.sortedWith(Person.NameComparator))
 
 > 코틀린 object를 자바에서 사용하기
 INSTANCE 키워드를 사용하면 된다.
+
+### 동반 객체: 팩토리 메서드와 정적 멤버가 들어갈 장소
+
+``` kotlin
+class User {
+    val nickname: String
+
+    constructor(email: String) {   <---- 부 생성자
+        nickname = email.substringBefor("@")
+    }
+
+    constructor(facebookAccountId: Int) {   <---- 부 생성자
+        nickname = getFacebookName(facebookAccountId)
+    }
+}
+```
+
+**부 생성자를 팩토리 메서드로 대신하기**
+
+``` kotlin
+class User private constructor(val nickname: String) { <--- 주 생성자를 비공개로 만든다.
+
+    companion object {
+        fun newSubscribingUser(email: String) = 
+            User(email.substringBefore('@'))
+        fun newFacebookUser(accountId: Int) = 
+            User(getFacebookName(accountId))
+    }
+}
+
+val subscribingUser = User.newSubscribingUser("bob@gmail.com")
+val facebookUser = User.newFacebookUser(4)
+
+println(subscribingUser.nickname)
+>>> bob
+```
+
+
+[돌아가기](#목차)
