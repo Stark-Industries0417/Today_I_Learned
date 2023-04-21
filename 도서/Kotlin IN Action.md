@@ -45,7 +45,9 @@
     - [추상 클래스 정의하기](#추상-클래스-정의하기)
 -[가시성 변경자: 기본적으로 공개](#가시성-변경자-기본적으로-공개)
 - [접근자의 가시성 변경](#접근자의-가시성-변경)
+- [게터와 세터에서 뒷받침하는 필드에 접근](#게터와-세터에서-뒷받침하는-필드에-접근)
 - [클래스 위임 사용하기](#클래스-위임-사용하기)
+- [인터페이스에 선언된 프로퍼티 구현](#인터페이스에-선언된-프로퍼티-구현)
 - [object를 통해 싱글턴 클래스 쉽게 만들기, 예시](#object-를-통해-싱글턴-클래스-쉽게-만들기)
 - [동반 객체: 팩토리 메서드와 정적 멤버가 들어갈 장소](#동반-객체-팩토리-메서드와-정적-멤버가-들어갈-장소)
 
@@ -1127,6 +1129,7 @@ public 함수 안에서 가시성이 더 낮은 타입을 참조하지 못하게
 giveSpeech 확장 함수의 가시성을 internal로 바꾸거나, 
 TalkativeButton 클래스의 가시성을 public으로 바꿔야 한다.
 ```
+**자바에서는 같은 패지지 안에서 protected 멤버에 접근할 수 있지만, 코틀린에선 그렇지 않다는 점에서 자바와 코틀린의 protected가 다르다.**
 
 [돌아가기](#목차)
 
@@ -1140,12 +1143,113 @@ class LengthCounter {
         conuter += word.length
     }
 }
-
+```
 외부 코드에서 길이의 합을 마음대로 바꾸지 못하게 클래스 내부에서만 길이를 변경하게 만들기 위해
 private set을 통해 가시성을 제한한다.
+   
+
+#### 코틀린의 가시성 변경자와 자바   
+- 코틀린의 public, protected, private 변경자는 컴파일된 자바 바이트코드 안에서도 그대로 유지된다.   
+- 자바에선 private 클래스를 만들 수 없으므로 내부적으로 코틀린은 private 클래스를 패키지-전용 클래스로 컴파일 한다.   
+- internal은 자바 바이트코드상에서는 publicdl 된다.
+
+> internal   
+1. 한 모듈에 속한 어떤 클래스를 모듈 밖에서 상속한 경우 그 하위 클래스 내부의 메서드 이름이 우연히 상위 클래스의 internal 메서드와 같아져,   
+내부 메서드를 오버라이드하는 경우를 방지하기 위함   
+2. 실수로 internal 클래스를 모듈 외부에서 사용하는 일을 막기 위함이다.
+
+### 인터페이스에 선언된 프로퍼티 구현
+
+``` kotlin
+interface User {
+    val nickname: String
+}
+
+User 인터페이스를 구현하는 클래스가 nickname의 값을 얻을 수 있는 방법을 제공해야 한다는 뜻
 ```
 
+``` kotlin
+interface User {
+    val nickname: String
+}
+
+class PrivateUser(override val nickname: String) : User // 주 생성자에 있는 프로퍼티
+
+class SubscribingUser(val email: String): User {
+    override val nickname: String
+        get() = email.substringBefore("@")  // 커스텀 게터
+}
+
+class FacebookUser(val accountId: Int) : User {
+    override val nickname = getFacebookName(accountId)
+
+    fun getFacebookName(accountId: Int): String {
+        // return findById(accountId)
+        return "abc"
+    }
+}
+
+
+fun main() {
+    println(PrivateUser("test@naver.com").nickname)
+    println(SubscribingUser("test@naver.com").nickname)
+}
+```
+
+``` kotlin
+interface User {
+    val email: String
+    val nickname: String
+
+}
+```
+
+``` kotlin
+interface User {
+    val email: String
+    val nickname: String
+        get() = email.substringBefore("@")
+}
+
+하위 클래스는 추상 프로퍼티인 emil을 반드시 오버라이드 해야 한다.
+반면 nickname은 오버라이드하지 않고 상속할 수 있다.
+```
+
+> 자바애서 인터페이스의 필드는 public static final이 자동으로 붙는다.   
+코틀린에서는 필드도 오버라이드를 할 수 있지만 자식 클래스가 필드 값을 얻을 수 있는 방법을 제공해야 한다.
+
 [돌아가기](#목차)
+
+### 게터와 세터에서 뒷받침하는 필드에 접근
+
+``` kotlin
+class User(val name: String) {
+    var address: String = "unspecified"
+        set(value: String) {
+            println("""
+                Address was changed for $name:
+                "$field" -> "$value".
+            """.trimIndent())
+            field = value
+        }
+}
+
+fun main() {
+    val user = User("Alice")
+    user.address = "고마로 13길 34-2"
+    user.address = "고마로 13길 34-2 awefawef"
+}
+
+>>>
+"unspecified" -> "고마로 13길 34-2".
+Address was changed for Alice:
+"고마로 13길 34-2" -> "고마로 13길 34-2 awefawef".
+
+게터에서는 field 값만 읽을 수 있고
+세터에서는 field 값을 읽거나 쓸 수 있으며 field 라는 특별한 식별자를 통해 뒷받침하는 필드에 접근할 수 있다.
+```
+[돌아가기](#목차)
+
 
 ### 클래스 위임 사용하기
 
