@@ -50,6 +50,10 @@
 - [인터페이스에 선언된 프로퍼티 구현](#인터페이스에-선언된-프로퍼티-구현)
 - [object를 통해 싱글턴 클래스 쉽게 만들기, 예시](#object-를-통해-싱글턴-클래스-쉽게-만들기)
 - [동반 객체: 팩토리 메서드와 정적 멤버가 들어갈 장소](#동반-객체-팩토리-메서드와-정적-멤버가-들어갈-장소)
+- [동반 객체에서 인터페이스 구현하기](#동반-객체에서-인터페이스-구현하기)
+- [동반 객체에 대한 확장 함수 정의하기](#동반-객체에-대한-확장-함수-정의하기)
+- [객체 식: 무명 내부 클래스를 다른 방식으로 작성](#객체-식-무명-내부-클래스를-다른-방식으로-작성)
+- [무명 객체 안에서 로컬 변수 사용하기](#무명-객체-안에서-로컬-변수-사용하기)
 
 # 1장 코틀린이란 무엇이며, 왜 필요한가?
 
@@ -1307,6 +1311,11 @@ INSTANCE 키워드를 사용하면 된다.
 
 ### 동반 객체: 팩토리 메서드와 정적 멤버가 들어갈 장소
 
+- 최상위 함수는 같은 패키지 클래스 내부의 private 멤버에 접근할 수 없다.
+- 클래스의 인스턴스와 관계없이 호출해야 하지만, 클래스 내부 정보에 접근해야 하는 함수가 필요할 때는 클래스에 중첩된 객체 선언의 멤버 함수로 정의해야 한다.
+- 동반 객체가 private 생성자를 호출하기 좋은 위치다.
+- 동반 객체는 바깥쪽 클래스의 private 생성자도 호출할 수 있다.
+
 ``` kotlin
 class User {
     val nickname: String
@@ -1320,6 +1329,7 @@ class User {
     }
 }
 ```
+
 
 **부 생성자를 팩토리 메서드로 대신하기**
 
@@ -1341,5 +1351,98 @@ println(subscribingUser.nickname)
 >>> bob
 ```
 
+[돌아가기](#목차)
+
+### 동반 객체에서 인터페이스 구현하기
+
+``` kotlin
+interface JSONFactory<T> {
+    fun fromJSON(jsonText: String) : T
+}
+
+class Person(val name: String) {
+    companion object : JSONFactory<Person> {
+        override fun fromJSON(jsonText: String) : Person = ... <-- 동반 객체가 인터페이스를 구현한다.
+    }
+}
+
+fun loadFromJSON<T>(factory: JSONFactory<T>): T {
+    ...
+}
+loadFromJSON(person) <-- 동반 객체의 인스턴스를 함수에 넘긴다.
+
+>> 동반 객체가 구현한 JSONFactory의 인스턴스를 넘길 때 Person 클래스의 이름을 사용했다.
+```
+
+[돌아가기](#목차)
+
+
+### 동반 객체에 대한 확장 함수 정의하기
+
+``` kotlin
+비즈니스 로직 모듈
+
+class Person(val firstName: String, val lastName: String) {
+    companion object {  
+        <-- 비어있는 동반 객체를 선언 -->
+    }
+}
+
+클라이언트 서버 통신 모듈
+fun Person.Companion.fromJSON(json: String) : Person {  <-- 확장 함수를 선언
+    ...
+}
+
+val p = Person.fromJSON(json)
+```
+
+- 다른 보통 확장 함수처럼 fromJSON도 클래스 멤버 함수로 보이지만 실제로는 멤버 함수가 아니다.
+- 동반 객체에 대한 확장 함수를 작성할 수 있으려면 원래 클래스에 동반 객체를 꼭 선언해야 한다.
+
+[돌아가기](#목차)
+
+
+## 객체 식: 무명 내부 클래스를 다른 방식으로 작성
+
+``` kotlin
+window.addMouseListener(
+    object : MouseAdapter() {  <-- MouseAdapter를 확장하는 무명 객체 선언
+        override fun mouseClicked(e: MouseEvent) { <-- MouseAdapter의 메서드를 오버라이드 한다.
+            ...
+        }
+        override fun mouseEntered(e: MouseEvent) { <-- MouseAdapter의 메서드를 오버라이드 한다.
+            ...
+        }
+    }
+)
+```
+- 객체 식은 클래스를 정의하고 그 클래스에 속한 인스턴스를 생성한다.
+- 클래스나 인스턴스에 이름을 붙이지는 않는다.
+- 객체에 이름을 붙여야 한다면 변수에 무명 객체를 대입하면 된다.
+``` kotlin
+val listener = object : MouseAdapter() {
+    override fun mouseClicked(e: MouseEvent) { ... }
+    override fun mouseEntered(e: MouseEvent) { ... }
+}
+```
+
+> 한 클래스만 확장할 수 있는 자바의 무명 내부 클래스와 달리 코틀린 무명 클래스는 여러 인터페이스를 구현하거나 클래스를 확장하면서 인터페이스를 구현할 수 있다.
+
+#### 객체 선언과 달리 무명 객체는 싱글턴이 아니다. 객체 식이 쓰일 때마다 새로운 인스턴스가 생성된다.
+
+[돌아가기](#목차)
+
+### 무명 객체 안에서 로컬 변수 사용하기
+
+``` kotlin
+fun countClicks(window: Window) {
+    var clickCount = 0  
+    window.addMouseListener(object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent) {
+            clickCount++ <-- 로컬 변수의 값 변경 가능!
+        }
+    })
+}
+```
 
 [돌아가기](#목차)
