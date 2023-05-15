@@ -45,6 +45,7 @@
     - [추상 클래스 정의하기](#추상-클래스-정의하기)
 -[가시성 변경자: 기본적으로 공개](#가시성-변경자-기본적으로-공개)
 - [접근자의 가시성 변경](#접근자의-가시성-변경)
+- [봉인된 클래스: 클래스 계층 정의 시 계층 확장 제한](#봉인된-클래스-클래스-계층-정의-시-계층-확장-제한)
 - [게터와 세터에서 뒷받침하는 필드에 접근](#게터와-세터에서-뒷받침하는-필드에-접근)
 - [클래스 위임 사용하기](#클래스-위임-사용하기)
 - [인터페이스에 선언된 프로퍼티 구현](#인터페이스에-선언된-프로퍼티-구현)
@@ -1161,6 +1162,50 @@ private set을 통해 가시성을 제한한다.
 1. 한 모듈에 속한 어떤 클래스를 모듈 밖에서 상속한 경우 그 하위 클래스 내부의 메서드 이름이 우연히 상위 클래스의 internal 메서드와 같아져,   
 내부 메서드를 오버라이드하는 경우를 방지하기 위함   
 2. 실수로 internal 클래스를 모듈 외부에서 사용하는 일을 막기 위함이다.
+
+### 봉인된 클래스: 클래스 계층 정의 시 계층 확장 제한
+
+``` kotlin
+interface Expr
+
+class Num(val value: Int) : Expr
+class Sum(val left: Expr, val right: Expr) : Expr
+
+fun eval(e: Expr) : Int = 
+    when(e) {
+        is Num -> e.value
+        is Sum -> eval(e.right) + eval(e.left)
+        else ->               <-- else 분기가 꼭 있어야 한다.
+            throw IllegalArgumentException("Unknown expression")
+    }
+```
+
+디폴트 분기(else)가 있어 불편하다.
+- 클래스 계층에 새로운 하위 클래스를 추가하더라도 컴파일러가 when이 모든 경우를 처리하는지 제대로 검사할 수 없다.
+- 실수로 클래스 처리를 잊어버려 디폴트 분기가 선택되어 심각한 버그가 발생할 수 있다.
+
+> sealed 클래스는 상위 클래스에 붙여 상속한 하위 클래스 정의를 제한할 수 있다.   
+sealed 클래스를 상속한 하위 클래스를 정의할 때는 반드시 상위 클래스 안에 중첩시켜야 한다.
+
+``` kotlin
+sealed class Expr {
+    class Num(val value: Int) : Expr()
+    class Sum(val left: Expr, val right: Expr) : Expr()
+}
+
+fun eval(e: Expr): Int =
+    when(e) {
+        is Expr.Num -> e.value
+        is Expr.Sum -> eval(e.right) + eval(e.left)
+    }
+```
+- when 식에서 sealed 클래스의 모든 하위 클래스를 처리한다면 디폴트 분기가 필요 없다.
+- sealed로 표시된 클래스는 자동으로 Open dlek.
+- 봉인된 클래스는 클래스 외부에 자신을 상속한 클래스를 둘 수 없다.
+- 나중에 sealed 클래스의 상속 계층에 새로운 하위 클래스를 추가하면 when식이 컴파일 되지 않는다.
+- 내부적으로 Expr클래스는 private 생성자를 가진다.
+
+[돌아가기](#목차)
 
 ### 인터페이스에 선언된 프로퍼티 구현
 
