@@ -55,6 +55,14 @@
 - [동반 객체에 대한 확장 함수 정의하기](#동반-객체에-대한-확장-함수-정의하기)
 - [객체 식: 무명 내부 클래스를 다른 방식으로 작성](#객체-식-무명-내부-클래스를-다른-방식으로-작성)
 - [무명 객체 안에서 로컬 변수 사용하기](#무명-객체-안에서-로컬-변수-사용하기)
+[5장 람다로 프로그래밍](#5장-람다로-프로그래밍)
+- [람다 식과 멤버 참조](#람다-식과-멤버-참조)
+    - [컬렉션 직접 검색](#컬렉션-직접-검색)
+    - [람다를 사용해 컬렉션 검색](#람다를-사용해-컬렉션-검색)
+    - [멤버 참조를 사용해 컬렉션 검색하기](#멤버-참조를-사용해-컬렉션-검색하기)
+    - [현재 영역에 있는 변수에 접근](#현재-영역에-있는-변수에-접근)
+    - [멤버 참조](#멤버-참조)
+
 
 # 1장 코틀린이란 무엇이며, 왜 필요한가?
 
@@ -1489,5 +1497,159 @@ fun countClicks(window: Window) {
     })
 }
 ```
+
+[돌아가기](#목차)
+
+# 5장 람다로 프로그래밍
+
+람다
+- 람다는 기본적으로 다른 함수에 넘길 수 있는 작은 코드 조각을 뜻한다.
+
+## 람다 식과 멤버 참조
+
+### 컬렉션 직접 검색
+
+``` kotlin
+data class Person(val name: String, val age: Int)
+
+fun findTheOldest(people: List<Person>) {
+    var maxAge = 0
+    var theOldest: Person? = null
+    for(person in people) {
+        if(person.age > maxAge) {
+            maxAge = person.age
+            theOldest = person
+        }
+    }
+    println(theOldest)
+}
+
+fun main() {
+    val people = listOf(Person("Alice", 29), Person("Bob", 31))
+
+    findTheOldest(people)
+}
+
+>>> Person(name=Bob, age=31)
+```
+
+[돌아가기](#목차)
+
+### 람다를 사용해 컬렉션 검색
+
+``` kotlin
+fun main() {
+    val people = listOf(Person("Alice", 29), Person("Bob", 31))
+
+    println(people.maxByOrNull { it.age })
+}
+```
+
+[돌아가기](#목차)
+
+### 멤버 참조를 사용해 컬렉션 검색하기
+
+``` kotlin
+fun main() {
+    val people = listOf(Person("Alice", 29), Person("Bob", 31))
+
+    println(people.maxByOrNull(Person::age))
+}
+```
+- 코틀린에는 함수 호출 시 맨 뒤에 있는 인자가 람다 식이라면 그 람다를 괄호 밖으로 빼낼 수 있다.
+- 둘 이상의 람다를 인자로 받는 함수라고 해도 인자 목록의 맨 마지막 람다만 밖으로 뺼 수 있다.   
+    => 이런 경우엔 괄호를 사용하는 일반적인 함수 호출 구문을 사용하는 편이 낫다.
+
+``` kotlin
+val getAge = { p: Person -> p.age }
+people.maxBy(getAge)
+```
+- 람다를 변수에 저장할 때는 파라미터의 타입을 추론할 문맥이 존재하지 않는다.
+
+``` kotlin
+val sum = { x: Int, y: Int -> 
+        println("Computing the sum of $x and $y...")
+        x + y
+    }
+println(sum(1, 2))
+>>> Computing the sum of 1 and 2...
+3
+```
+- 본문이 여러 줄로 이뤄진 경우 본문의 맨 마지막에 있는 식이 람다의 결과 값이 된다.
+
+
+[돌아가기](#목차)
+
+### 현재 영역에 있는 변수에 접근
+
+``` kotlin
+fun printMessagesWithPrefix(messages: Collection<String>, prefix: String) {
+    messages.forEach {
+        println("$prefix $it")
+    }
+}
+
+fun main() {
+    val errors = listOf("403 Forbidden", "404 Not Found")
+    printMessagesWithPrefix(errors, "Error:")
+}
+```
+- forEach 문 안에서 바깥 변수인 prefix에 접근할 수 있다.
+- 바깥 변수의 값도 변경 가능하다   
+
+**람다에서 람다 밖 함수에 있는 파이널이 아닌 변수에만 접근할 수 있고 변경도 가능하다**
+
+``` kotlin
+fun tryToCountButtonClicks(button: Button) : Int {
+    var clicks = 0
+    button.onClick { clicks++ }
+    return clicks
+}
+
+이 함수는 항상 0을 반환한다.
+onClick 핸들러는 tryToCountButtonClicks 메서드가 clicks를 반환한 다음에 호출되기 때문이다.
+
+즉 람다를 이벤트 핸들러나 다른 비동기적으로 실행되는 코드로 활용하는 경우 함수 호출이 끝난 다음에 로컬 변수가 변경된다는 의미이다.
+```
+
+[돌아가기](#목차)
+
+## 멤버 참조
+::는 클래스 이름과 여러분이 참조하려는 멤버(프로퍼티나 메서드) 이름 사이에 위치한다.
+
+``` kotlin
+
+people.maxBy(Person::age)
+people.maxBy { p -> p.age }
+people.maxBy { it. age }
+
+최상위에 선언된(그리고 다른 클래스의 멤버가 아닌) 함수나 프로퍼티를 참조할 수도 있다.
+
+fun salute() = println("Salute!")
+run(::salute)
+>>> Salute!
+```
+
+``` kotlin
+생성자 참조
+
+data class Person(val name: String, val age: Int)
+
+val createPerson = ::Person <- Person의 인스턴스를 만드는 동작을 값으로 저장
+val p = createPerson("Alice", 29)
+
+println(p)
+>>> Person(name=Alice, age=29)
+```
+
+``` kotlin
+확장 함수도 멤버 함수와 똑같은 방식으로 참조할 수 있다.
+
+fun Person.isAdult() = age >= 21
+val predicate = Person::isAdult
+```
+
+- isAdult는 Person의 클래스 멤버가 아니고 확장 함수다.
+- person.isAdult() 인스턴스로 멤버 호출 할 수 있는 것처럼 Person::isAdult로 멤버 참조 구문을 사용해 이 확장 함수에 대한 참조를 얻을 수 있다.
 
 [돌아가기](#목차)
