@@ -62,6 +62,13 @@
     - [멤버 참조를 사용해 컬렉션 검색하기](#멤버-참조를-사용해-컬렉션-검색하기)
     - [현재 영역에 있는 변수에 접근](#현재-영역에-있는-변수에-접근)
     - [멤버 참조](#멤버-참조)
+        - [함수를 적재적소에 사용하라: count와 size](#함수를-적재적소에-사용하라-count와-size)
+        - [find](#find)
+    - [groupBy: 리스트를 여러 그룹으로 이뤄진 맵으로 변경](#groupby-리스트를-여러-그룹으로-이뤄진-맵으로-변경)
+    - [flatMap과 flatten: 중첩된 컬렉션 안의 원소 처리](#flatmap과-flatten-중첩된-컬렉션-안의-원소-처리)
+    - [지연 계산(lazy) 컬렉션 연산](#지연-계산lazy-컬렉션-연산)
+    - [시퀀스 연산 실행: 중간 연산과 최종 연산](#시퀀스-연산-실행-중간-연산과-최종-연산)
+    
 
 
 # 1장 코틀린이란 무엇이며, 왜 필요한가?
@@ -1651,5 +1658,138 @@ val predicate = Person::isAdult
 
 - isAdult는 Person의 클래스 멤버가 아니고 확장 함수다.
 - person.isAdult() 인스턴스로 멤버 호출 할 수 있는 것처럼 Person::isAdult로 멤버 참조 구문을 사용해 이 확장 함수에 대한 참조를 얻을 수 있다.
+
+[돌아가기](#목차)
+
+### 함수를 적재적소에 사용하라: count와 size
+
+``` kotlin
+println(people.filter { it.age <= 27}.size)
+
+이 코드는 처리하면 조건을 만족하는 모든 원소가 들어가는 중간 컬렉션이 생기게 된다.
+반면 count는 조건을 만족하는 원소의 개수만을 추적하지 조건을 만족하는 원소를 따로 저장하지 않기에
+count가 훨씬 더 효율적이다.
+```
+
+[돌아가기](#목차)
+
+### find
+``` kotlin
+lisfOf(Person("Alice", 27), Person("Bob", 31))
+println(people.find{it.age <= 27})
+>>> Person(name=Alice, age=27)
+
+find는 조건을 만족하는 원소가 하나라도 있는 경우 가장 먼저 조건을 만족한 원소를 반환한다.
+만족하는 원소가 전혀 없는 경우 null을 반환
+
+find는 firstOrNull과 같다.
+조건 만족하는 원소가 없으면 null이 나온다느 ㄴ사실을 더 명확히 하고 싶다면 firstOrNull을 쓸 수 있다.
+```
+
+[돌아가기](#목차)
+
+## groupBy: 리스트를 여러 그룹으로 이뤄진 맵으로 변경
+``` kotlin
+val list = listOf("a", "ab", "b")
+println(list.groupBy(String::first))
+
+원소를 구분하는 특성이 키이고 키 값에 따른 각 그룹이 값인 맵이다.
+반환 타입 => Map<Int, List<Person>>
+```
+
+[돌아가기](#목차)
+
+## flatMap과 flatten: 중첩된 컬렉션 안의 원소 처리
+
+``` kotlin
+
+val strings = listOf("abc", "def")
+println(strings.flatMap { it.toList() })
+```
+1. map 연산인 it.toList()로 [[a, b, c], [d, e, f]]가 된다.
+2. flatten 으로 [a, b, c, d, e, f] 가 된다.
+
+[돌아가기](#목차)
+
+## 지연 계산(lazy) 컬렉션 연산
+
+``` kotlin
+val num = listOf("1", "2", "3", "4", "5")
+println(num.map { it.toInt() }.filter { it % 2 == 0 })
+```
+
+**filter와 map이 리스트를 반환하므로 연쇄 호출이 리스트를 2개 만들어 낸다.**
+=> 원소가 수백만 개 라면 효율이 엄청나게 떨어진다.
+
+``` kotlin
+val num = listOf("1", "2", "3", "4", "5")
+
+num.asSequence()
+    .map { it.toInt() }
+    .filter { it % 2 == 0 }
+    .toList()
+
+```
+1. 원본 컬렉션을 시퀀스로 변환
+2. 시퀀스도 컬레션과 똑같은 API를 제공한다.
+3. toList() <- 결과 시퀀스를 다시 리스트로 반환한다.
+
+=> 중간 결과를 저장하는 컬렉션이 생기지 않기 때문에 원소가 많은 경우 성능이 좋아진다.
+
+> 시퀀스에 대한 연산을 지연 계산하기 때문에 계산을 실행시키려면 최종 시퀀스의 원소를 하나씩 이터레이션하거나
+최종 시퀀스를 리스트로 변환해야 한다.
+
+[돌아가기](#목차)
+
+## 시퀀스 연산 실행: 중간 연산과 최종 연산
+
+- 시퀀스에 대한 연산은 중간 연산과 최종 연산으로 나뉜다.
+- 중간 연산은 다른 시퀀스를 반환한다. 그 시퀀스는 최초 시퀀스의 원소를 변환하는 방법을 안다.
+- 최종 연산은 결과를 반환한다.
+- 결과는 최초 컬렉션에 대해 변환을 적용한 시퀀스로부터 일련의 계산을 수행해 얻을 수 있는 컬렉션이나 원소, 숫자 또는 객체이다.
+
+중간 연산은 항상 지연 계산된다.
+``` kotlin
+val num = listOf(1, 2, 3, 4)
+
+num.asSequence()
+    .map{ print("map($it) "); it*it}
+    .filter { print("filter($it) "); it % 2 == 0 }
+
+아무 내용도 출력되지 않는다.
+map과 filter 변환이 늦춰져서 결과를 얻을 필요가 있을 때(즉 최종 연산이 호출될 때) 적용된다.
+
+num.asSequence()
+    .map{ print("map($it) "); it*it}
+    .filter { print("filter($it) "); it % 2 == 0 }
+    .toList()
+
+최종 연산을 호출하면 연기됐던 모든 계산이 수행된다.
+>>> map(1) filter(1) map(2) filter(4) map(3) filter(9) map(4) filter(16) 
+
+
+num
+    .map{ print("map($it) "); it*it}
+    .filter { print("filter($it) "); it % 2 == 0 }
+    .toList()
+
+시퀀스가 없다면 모든 원소에 대해 리스트를 반환하는 map과 filter를 적용시킨다.
+map(1) map(2) map(3) map(4) filter(1) filter(4) filter(9) filter(16) 
+```
+
+- 첫 번째 원소가 처리되고 다시 두 번째 원소가 처리되는 식으로 모든 원소에 대해 적용된다.
+- 원소에 연산을 차례대로 적용하다가 결과가 얻어지면 그 이후의 원소에 대해선 변환이 이뤄지지 않을 수 있다.
+
+``` kotlin
+println(listOf(1, 2, 3, 4).asSequence().map{it*it}.find{it > 3})
+
+즉시 계산
+[1, 2, 3, 4] map-> [1, 4, 9, 16] find-> 4 결과
+
+지연 계산
+[1, 2, 3, 4] map-> [1, 4] find->  4 결과
+4에서 이미 답을 찾았기 때문에 3과 4를 처리할 필요가 없어진다.
+```
+> 시퀀스를 사용할 때 filter를 적용하고 map을 적용하면 전체 변환 횟수가 줄어든다.
 
 [돌아가기](#목차)
