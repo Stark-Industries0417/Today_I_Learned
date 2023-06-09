@@ -68,7 +68,9 @@
     - [flatMap과 flatten: 중첩된 컬렉션 안의 원소 처리](#flatmap과-flatten-중첩된-컬렉션-안의-원소-처리)
     - [지연 계산(lazy) 컬렉션 연산](#지연-계산lazy-컬렉션-연산)
     - [시퀀스 연산 실행: 중간 연산과 최종 연산](#시퀀스-연산-실행-중간-연산과-최종-연산)
-    
+    - [시퀀스 만들기](#시퀀스-만들기)
+        - [자연수의 시퀀스를 생성하고 사용하기](#자연수의-시퀀스를-생성하고-사용하기)
+    - [자바 메서드에 람다를 인자로 전달](#자바-메서드에-람다를-인자로-전달)
 
 
 # 1장 코틀린이란 무엇이며, 왜 필요한가?
@@ -1791,5 +1793,61 @@ println(listOf(1, 2, 3, 4).asSequence().map{it*it}.find{it > 3})
 4에서 이미 답을 찾았기 때문에 3과 4를 처리할 필요가 없어진다.
 ```
 > 시퀀스를 사용할 때 filter를 적용하고 map을 적용하면 전체 변환 횟수가 줄어든다.
+
+[돌아가기](#목차)
+
+## 시퀀스 만들기
+
+### 자연수의 시퀀스를 생성하고 사용하기
+
+``` kotlin
+val naturalNumbers = generateSequence(0) { it + 1 }
+val numbersTo100 = naturalNumbers.takeWhile { it <= 100 }
+
+println(numbersTo100.sum()) -> 모든 연산은 "sum"의 결과를 계산할 때 수행된다.
+
+>>> 최종 연산 수행 전까진 시퀀스의 각 숫자는 계산되지 않는다.
+```
+
+## 자바 메서드에 람다를 인자로 전달
+
+> 단일 추상 메서드(함수형 인터페이스)에는 코틀린 람다를 전달 할 수 있다.
+
+람다로 전달 될 때 코틀린 컴파일러는 람다를 무명 클래스와 인스턴스를 만들어준다.
+
+``` kotlin
+// java
+void postponeComputation(int delay, Runnable computation);
+
+// kotlin
+postponeComputation(1000) { println(42) }
+
+객체 식을 함수형 인터페이스 구현으로 넘긴다.
+postponeComputation(1000, object : Runnable {
+    override fun run() {
+        println(42)
+    }
+})
+
+postponeComputation(1000) { println(42) } <- 프로그램 전체에서 Runnable의 인스턴스는 단 하나만 만들어진다.
+```
+
+- 객체를 명시적으로 선언하는 경우 메서드 호출할 때마다 새로운 객체가 생성된다.
+- 정의가 들어있는 함수의 변수에 접근하지 않는 람다는 대응하는 무명 객체를 메서드를 호출할 때마다 반복 사용한다.
+
+``` kotlin
+명시적인 object 선언을 사용하면서 람다와 동일한 코드
+
+val runnable = Runnable { println(42) }
+fun handleComputation() {
+    postponeComputation(1000, runnable) <- 모든 handleComputation 호출에 같은 객체를 사용한다.
+}
+
+람다가 주변 영역의 변수를 포획한다면 매 호출마다 같은 인스턴스를 사용할 수 없다.
+
+fun handleComputation(id: String) { <- 람다 안에서 "id" 변수 포획
+    postponeComputation(1000) { println(id) } <- handleComputation을 호출할 때마다 새로 Runnable 인스턴스를 만든다.
+}
+```
 
 [돌아가기](#목차)
