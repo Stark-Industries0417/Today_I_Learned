@@ -1851,3 +1851,89 @@ fun handleComputation(id: String) { <- 람다 안에서 "id" 변수 포획
 ```
 
 [돌아가기](#목차)
+
+## SAM 생성자: 람다를 함수형 인터페이스로 명시적으로 변경
+
+> SAM 생성자는 람다를 함수형 인터페이스의 인스턴스로 변환할 수 있게 컴파일러가 자동으로 생성한 함수다.
+
+- SAM 생성자의 이름은 사용하려는 함수형 인터페이스의 이름과 같다.
+- SAM 생성자는 함수형 인터페이스의 유일한 추상 메서드의 본문에 사용할 람다만을 인자로 받아서 함수형 인터페이스를 구현하는 클래스의 인스턴스를 반환한다.
+
+### SAM 생성자를 사용해 listener 인스턴스 재사용하기
+
+``` kotlin
+val listener = OnClickListener { view -> 
+    val text = when(view.id) {
+        R.id.button1 -> "First button"
+        R.id.button2 -> "Second button"
+        else -> "Unknown button"
+    }
+    toast(text)
+}
+
+button1.setOnClickListener(listener)
+button2.setOnClickListener(listener)
+```
+
+> 람다에는 무명 객체와 달리 인스턴스 자신을 가리키는 this가 없다.   
+컴파일러 입장에서 보면 람다는 코드 블록일 뿐이고, 객체가 아니므로 객체처럼 람다를 참조할 수는 없다.   
+람다 안에서의 this는 그 람다를 둘러싼 클래스의 인스턴스를 가리킨다.
+
+## 수신 객체 지정 람다: with와 apply
+
+### with 함수
+
+``` kotlin
+fun alphabet(): String {
+    val result = StringBuilder()
+    for(letter in 'A'..'Z') {
+        result.append(letter)
+    }
+    result.append("\nNow I know hte alphabet!")
+    return result.toString()
+}
+
+fun main() {
+    println(alphabet())
+}
+
+result에 대해 다른 여러 메서드를 호출하면서 매번 result를 반복 사용함
+
+
+fun alphabet(): String {
+    val stringBuilder = StringBuilder()
+    return with(stringBuilder) {       <- 메서드를 호출하려는 수신 객체를 지정
+        for(letter in 'A'..'Z') {
+            this.append(letter)     <- "this"를 명시해서 앞에서 지정한 수신 객체의 메서드 호출
+        }
+        append("\nNow I know the alphabet!")    <- "this" 생략하고 메서드 호출
+        this.toString() <- 람다에서 값 반환
+    }
+}
+
+fun main() {
+    println(alphabet())
+}
+```
+
+- this와 점(.) 사용하지 않고 프로퍼티나 메서드 이름만 사용해도 수신 객체의 멤버에 접근 가능하다.
+
+### with와 식을 본문으로 하는 함수를 활용해 알파벳 만들기
+
+``` kotlin
+fun alphabet() = with(StringBuilder()) {
+    ('A'..'Z').forEach{
+        append(it)
+    }
+    append("\nNow I know the alphabet!")
+    toString()
+}
+
+fun main() {
+    println(alphabet())
+}
+```
+
+> with가 반환하는 값은 람다 코드를 실행한 결과며, 그 결과는 람다 식의 본문에 있는 마지막 식의 값이다.
+
+
