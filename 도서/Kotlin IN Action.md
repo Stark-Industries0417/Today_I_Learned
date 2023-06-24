@@ -1966,3 +1966,99 @@ fun main() {
 > apply 함수는 객체의 인ㅡ턴스를 만들면서 즉시 프로퍼티 중 일부를 초기화해야 하는 경우 유용하다.
 
 [돌아가기](#목차)
+
+# 6장 코틀린 타입 시스템
+
+- 널이 될 수 있는 타입과 널을 처리하는 구문의 문법
+- 코틀린 원시 타입 소개와 자바 타입과 코틀린 원시 타입의 관계
+- 코틀린 컬렉션 소개화 자바 컬렉션과 코틀린 컬렉션의 관계
+
+## 널 가능성
+
+> NullPointerException 문제를 실행 시점에서 컴파일 시점으로 옮기는 것
+
+[돌아가기](#목차)
+
+## 널이 될 수 있는 타입
+
+``` java
+int strLen(String s) {
+    return s.length();
+}
+
+- strLen(null) 처럼 직접 null 리터럴을 사용하는 경우
+- 변수나 식의 값이 실행 시점에 null이 될 수 있는 경우
+```
+
+- 널이 인자로 들어올 수 없다면 
+    ``` kotlin
+    fun strLen(s: String) = s.length()
+
+    strLen(null)
+    ERROR: Null can not be a value of a non-null type String
+    ```
+=> strLen에 null이거나 널이 될 수 있는 인자를 넘기는 것은 금지된다.
+
+- 널과 문자열을 인자로 받을 수 있다면
+    ``` kotlin
+    fun strLen(s: String?) = s.length
+
+    fun strLen(s: String?) = s.length
+
+    널이 될 수 있는 타입의 변수가 있다면 그에 대해 수행할 수 있는 연산이 제한된다.
+    널이 될 수 있는 타입인 변수에 대해 변수.메서드() 처럼 메서드를 직접 호출할 수는 없다.
+    ```
+
+- 널이 될 수 있는 값을 널이 될 수 없는 타입의 변수에 대입할 수 없다.
+    ``` kotlin
+    val x: String? = null
+    var y: String = x
+
+    ERROR: Type mismatch
+    ```
+
+- 널이 될 수 있는 타입의 값을 널이 될 수 없는 타입의 파라미터를 받는 함수에 전달 할 수 없다.
+    ``` kotlin
+    strLen(x)
+
+    ERROR: Type mismatch
+    ```
+
+[돌아가기](#목차)
+
+### if 검사를 통해 null 값 다루기
+
+``` kotlin
+fun strLenSafe(s: String?): Int = 
+    if(s != null) s.length else 0
+
+val x: String? = null
+println(strLenSafe(x))
+>>> 0
+
+println(strLenSafe("abc"))
+>>> 3
+```
+[돌아가기](#목차)
+
+## 타입의 의미
+
+타입이란
+> 타입은 분류로 타입은 어떤 값들이 가능한지와 그 타입에 대해 수행할 수 있는 연산의 종류를 결정한다.
+
+[돌아가기](#목차)
+
+## 안전한 호출 연산자: ?.
+
+- ?.은 null 검사와 메서드 호출을 한 번의 연산으로 수행한다
+    ``` kotlin
+    s?.toUpperCase() 는 if(s != null) s.toUpperCase() else null 과 같다.
+    ```
+- 안전한 호출의 결과 타입도 널이 될 수 있는 타입이다.
+
+[돌아가기](#목차)
+
+## 엘비스 연산자 ?:
+
+> 코틀린에서는 return이나 throw 등의 연산도 식이다.   
+엘비스 연산자의 우항에 return, throw 등의 연산을 넣을 수 있다.   
