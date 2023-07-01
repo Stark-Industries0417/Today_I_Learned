@@ -2062,3 +2062,41 @@ println(strLenSafe("abc"))
 
 > 코틀린에서는 return이나 throw 등의 연산도 식이다.   
 엘비스 연산자의 우항에 return, throw 등의 연산을 넣을 수 있다.   
+
+[돌아가기](#목차)
+
+## 안전한 캐스트: as?
+
+- 대상 값 as로 지정한 타입으로 바꿀 수 없으면 ClassCastException 발생
+- as 사용할 때마다 is를 통해 미리 as로 변환 가능한 타입인지 검사 가능
+- as?는 값을 대상 타입으로 변환할 수 없으면 null 반환
+
+### 안전한 연산자 사용해 equals 구현하기
+
+``` kotlin
+class Person(val firstName: String, val lastName: String) {
+    override fun equals(other: Any?): Boolean {
+        val otherPerson = other as? Person ?: return false
+
+        return otherPerson.firstName == firstName &&
+                otherPerson.lastName == lastName
+    }
+
+    override fun hashCode() = firstName.hashCode() * 37 + lastName.hashCode()
+}
+
+fun main() {
+    val p1 = Person("moon", "kwon")
+    val p2 = Person("moon", "kwon")
+
+    println(p1 == p2)       <- == 연산자는 "equals" 메서드를 호출한다.
+    >>> true
+    println(p1.equals(42))
+    >>> false
+    println(p1.equals(p2))
+    >>> true
+}
+
+as? 로 타입을 검사하면 컴파일러가 otherPerson 변수의 값이 Person이란 사실을 알고   
+적절한 처리가 가능하다.
+```
