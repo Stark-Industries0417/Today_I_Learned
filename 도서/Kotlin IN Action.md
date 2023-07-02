@@ -2100,3 +2100,161 @@ fun main() {
 as? 로 타입을 검사하면 컴파일러가 otherPerson 변수의 값이 Person이란 사실을 알고   
 적절한 처리가 가능하다.
 ```
+
+[돌아가기](#목차)
+
+## 널 아님 단언: !!
+
+> 어떤 함수가 값이 널인지 검사한 다음에 다른 함수를 호출한다고 해도 컴파일러는 호출된 함수 안에서 그 값을 사용할 수 있음을 인식할 수 없다. 이럴 때 !! 를 사용한다.
+
+- !!를 널에 사용해서 발생하는 예외에서 어떤 식에서 예외가 발생했는지에 대한 정보는 없다.
+    - person.company!!.address!!.country <- 이런 식으로 코드를 작성하며 안된다.
+
+
+[돌아가기](#목차)
+
+
+## let 함수
+
+> let을 사용하는 가장 흔한 용례는 널이 될 수 있는 값을 널이 아닌 값만 인자로 받는 함수에 넘기는 경우이다.
+
+foo?.let { ...it ...} => foo != null => it는 람다 안에서 널이 아니다.   
+foo?.let { ...it ...} => foo == null => 아무 일도 일어나지 않는다.
+
+``` kotlin
+fun sendEmailTo(email: String = "") {
+    println("Sending email to $email")
+}
+
+fun main() {
+    var email: String? = "yole@example.com"
+
+    email?.let { sendEmailTo(it) }
+
+    email = null
+    email?.let { sendEmailTo(it) }
+}
+```
+
+``` kotlin
+val person: Person? = getTheBestpersonInTheWorld()
+if(person != null) sendEmailTo(person.email)
+
+아주 긴 식이 널이 아닐 때 수행해야 하는 로직이 있을 때 let을 쓰면 긴 식의 결과를 저장하는 변수를 따로 만들 필요가 없다.
+
+getTheBestPersonInTheWorld()?.let { sendToEmail(it.email) }
+```
+
+[돌아가기](#목차)
+
+## 나중에 초기화할 프로퍼티
+
+``` kotlin
+
+class MyService {
+    fun performAction(): String = "foo"
+}
+
+class MyTest {
+    private var myService: MyService? = null <- null로 초기화하기 위해 널이 될 수 있는 타입인 프로퍼티를 선언한다.
+
+    @Before fun setUp() {
+        myService = MyService() <- 진짜 초깃값을 지정
+    }
+}
+
+
+@Test fun testAction() {
+    Assert.assertEquals("foo", myService!!.performAction())
+    => 반드시 널 가능성에 신경써야 한다. !!나 ?을 꼭 써야 한다.
+}
+```
+
+### 나중에 초기화하는 프로퍼티 사용
+
+``` kotlin
+class MyService {
+    fun performAction(): String = "foo"
+}
+
+class MyTest {
+    private lateinit var myService: MyService
+    => 초기화하지 않고 널이 될 수 없는 프로퍼티를 선언
+
+    @Before fun setUp() {
+        myService = MyService()
+        => setUp 메서드에서 프로퍼티를 초기화
+    }
+
+    @Test fun testAction() {
+        Assert.assertEquals("foo", myService.performAction())
+        => 널 검사 수행하지 않고 프로퍼티 사용
+    }
+}
+```
+
+- 나중에 초기화하는 프로퍼티는 항상 var여야 한다.
+- val 프로퍼티는 final 필드로 컴파일되며,  생성자 안에서 반드시 초기화해야 한다.
+
+[돌아가기](#목차)
+
+## 널이 될 수 있는 타입 확장
+
+``` kotlin
+fun verifyUserInput(input: String?) {
+    if(input.isNullOrBlank()) {  <- 안전한 호출을 하지 않아도 됨
+        println("Please fill in the required fields")
+    }
+}
+
+fun main() {
+    verifyUserInput(" ")
+    verifyUserInput(null) -> "null"을 수신 객체로 전달해도 아무런 예외가 발생하지 않는다.
+}
+
+fun String?.isNullOrBlank(): Boolean = this == null || this.isBlank()
+두 번째 this에는 스마트 캐스트가 적용된다.
+
+val person: Person? = ...
+person.let { sendEmailTo(it) } <- 안전한 호출을 하지 않음 따라서 it는 널이 될 수 있는 타입으로 취급된다.
+
+=> Type mismatch
+```
+
+> 직접 확장 함수를 작성한다면 처음에는 널이 될 수 없는 타입에 대한 확장 함수를 정의하라.   
+나중에 대부분 널이 될 수 있는 타입에 대해 그 함수를 호출했다면 확장 함수 안에서 널을 제대로    처리하게 하면 안전하게 그 확장함수를 널이 될 수 있는 타입에 대한 확장 함수로 바꿀 수 있다.
+
+``` kotlin
+s.isNullOrBlank() 처럼 추가 검사 없이 변수를 참조한다 해서   
+s가 널이 될 수 없는 타입이 되는건 아니다.
+
+isNullOrBlank()가 널이 될 수 있는 타입의 확장 함수라면 s가 널이 될 수 있는 타입일 수 있다.
+```
+
+[돌아가기](#목차)
+
+## 타입 파라미터의 널 가능성
+
+``` kotlin
+fun <T> printHashCode(t: T) {
+    println(t?.hashCode())      <- t가 null이 될 수 있으므로 안전한 호출을 써야한다.
+}
+
+fun main() {
+    printHashCode(null) T의 타입은 Any?로 추론된다.
+}
+```
+
+**타입 파라미터가 널이 아님을 확실히 하려면 널이 될 수 없는 타입 상한을 지정해야 한다.**
+
+``` kotlin
+fun <T: Any> printHashCode(t: T) {
+    println(t.hashCode())
+}
+
+fun main() {
+    printHashCode(null)
+}
+```
+
+[돌아가기](#목차)
