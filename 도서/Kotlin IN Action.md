@@ -94,6 +94,19 @@
     - [나중에 초기화하는 프로퍼티 사용](#나중에-초기화하는-프로퍼티-사용)
 - [널이 될 수 있는 타입 확장](#널이-될-수-있는-타입-확장)
 - [타입 파라미터의 널 가능성](#타입-파라미터의-널-가능성)
+- [상속](#상속)
+    - [String 파라미터가 있는 자바 인터페이스](#string-파라미터가-있는-자바-인터페이스)
+    - [자바 인터페이스를 여러 다른 널 가능성으로 구현하기](#자바-인터페이스를-여러-다른-널-가능성으로-구헌하기)
+- [원시 타입: Int, Boolean 등](#원시-타입-int-boolean-등)
+- [널이 될 수 있는 원시 타입: Int?, Boolean? 등](#널이-될-수-있는-원시-타입-int-boolean-등)
+- [Any, Any?: 최상위 타입](#any-any-최상위-타입)
+- [Unit 타입: 코틀린의 void](#unit-타입-코틀린의-void)
+- [읽기 전용과 변경 가능한 컬렉션](#읽기-전용과-변경-가능한-컬렉션)
+- [코틀린 컬렉션과 자바](#코틀린-컬렉션과-자바)
+- [객체의 배열과 원시 타입의 배열](#객체의-배열과-원시-타입의-배열)
+    - [알파벳으로 이뤄진 배열 만들기](#알파벳으로-이뤄진-배열-만들기)
+    - [컬렉션을 vararg 메서드에게 넘기기](#컬렉션을-vararg-메서드에게-넘기기)
+
 
 # 1장 코틀린이란 무엇이며, 왜 필요한가?
 
@@ -2272,6 +2285,184 @@ fun <T: Any> printHashCode(t: T) {
 fun main() {
     printHashCode(null)
 }
+```
+
+[돌아가기](#목차)
+
+## 상속
+
+### String 파라미터가 있는 자바 인터페이스
+
+``` java
+interface StringProcessor {
+    void process(String value);
+}
+```
+
+### 자바 인터페이스를 여러 다른 널 가능성으로 구헌하기
+
+``` kotlin
+class StringPrinter : StringProcessor {
+    override fun process(value: String) {
+        println(value)
+    }
+}
+
+class NullableStringPrinter : StringProcessor {
+    override fun process(value: String?) {
+        if(value != null) {
+            println(value)
+        }
+    }
+}
+```
+
+- 코틀린 컴파일러는 다음과 같은 두 구현을 모두 받아들인다.
+
+[돌아가기](#목차)
+
+## 원시 타입: Int, Boolean 등
+
+> 자바는 원시 타입과 참조 타입을 구분한다.   
+원시 타입의 변수에는 그 값이 직접 들어가지만, 참조 타입(String 등)의 변수에는 메모리상의 객체 위치가 들어간다.
+
+- 원시 값에 대해 메서드를 호출하거나 컬렉션에 원시 타입 값을 담을 수는 없다.
+- 자바는 참조 타입이 필요한 경우 특별한 래퍼 타입으로 원시 타입 값을 감싸서 사용한다.
+
+코틀린의 Int 타입은 자바 int 타입으로 컴파일 된다.   
+이런 컴파일이 불가능한 경우는 컬렉션과 같은 제네릭 클래스를 사용하는 경우 뿐이다.   
+Int 타입을 컬렉션의 타입 파라미터로 넘기면 그 컬렉션에는 Int의 래퍼 타입에 해당하는   
+Integer 객체가 들어간다.
+
+> 자바 원시 타입의 값은 결코 널이 될 수 없으므로 자바 원시 타입을 코틀린에서 사용할 때도 널이 될 수 없는 타입으로 취급할 수 있다.
+
+[돌아가기](#목차)
+
+## 널이 될 수 있는 원시 타입: Int?, Boolean? 등
+
+- null 참조를 자바의 참조 타입의 변수에만 대입할 수 있다.
+- 널이 될 수 있는 코틀린 타입은 자바 원시 타입으로 표현할 수 없다.
+- 코틀린에서 널이 될 수 있는 원시 타입을 사용하면 그 타입은 자바의 래퍼 타입으로 컴파일 된다.
+
+``` kotlin
+val listOfInts = listOf(1, 2, 3)
+
+=> null 값이나 널이 될 수 있는 타입을 전혀 사용하지 않았지만 만들어진 리스트는 래퍼인 Integer 타입으로 이뤄진 리스트이다.
+```
+
+래퍼 타입으로 컴파일 하는 이유
+- JVM에서 제네릭을 구현하는 방법이 타입 인자로 원시 타입을 허용하지 않는다.
+- 자바나 코틀린 모두에서 제네릭 클래스는 항상 박스 타입을 사용해야 한다.
+
+[돌아가기](#목차)
+
+## Any, Any?: 최상위 타입
+
+``` kotlin
+val answer: Any = 42
+=> 원시 타입 값을 Any 타입의 변수에 대입하면 자동으로 값을 객체로 감싼다.
+```
+
+[돌아가기](#목차)
+
+## Unit 타입: 코틀린의 void
+
+``` kotlin
+fun f(): Unit {...}
+이는 반환 타입 선언 없이 정의한 함수와 같다.
+
+fun f() { ... }
+```
+[돌아가기](#목차)
+
+## 읽기 전용과 변경 가능한 컬렉션
+
+코틀린 컬렉션과 자바 컬렉션을 나누는 가장 중요한 특성
+=> 코틀린에서는 컬렉션 안의 데이터에 접근하는 인터페이스와 변경하는 인터페이스를 분리했다는 점이다.
+
+[돌아가기](#목차)
+
+## 코틀린 컬렉션과 자바
+
+|컬렉션 타입|읽기 전용 타입|변경 가능 타입|
+|-------|-----------|------------|
+|List|listOf|mutableListOf, arrayListOf|
+|Set|setOf|mutableSetOf, hashSetOf, linkedSetOf, sortedSetOf|
+|Map|mapOf|mutableMapOf, hashMapOf, linkedMapOf, sortedMapOf|
+
+java.util.Collection을 파라미터로 받는 자바 메서드가 있다면 아무 Collection 이나 MutableCollection 값을 인자로 넘길 수 잇다.
+
+> 자바는 읽기 전용 컬렉션과 변경 가능 컬렉션을 구분하지 않으므로, 코틀린에서 읽기 전용 Collection으로 선언된 객체라도 자바 코드에선 그 컬렉션 객체의 내용을 변경할 수 있다.
+
+``` kotlin
+/* 자바 코드 */
+
+public class CollectionUtils {
+    public static List<String> uppercaseAll(List<String> items) {
+        for(int i = 0; i < items.size(); i++) {
+            items.set(i, items.get(i).toUpperCase());
+        }
+        return items;
+    }
+}
+
+fun printInUppercase(list: List<String>) <- 읽기 전용 파라미터 선언 {
+    println(CollectionUtils.uppercaseAll(list)) <- 컬렉션을 변경하는 자바 함수 호출
+    println(list.first())
+}
+
+fun main() {
+    val list = listOf("a", "b", "c")
+    printInUppercase(list)
+}
+
+>>> [A, B, C]
+>>> A
+```
+
+> 컬렉션을 자바로 넘기는 코틀린 프로그램을 작성한다면 호출하려는 자바 코드가 컬렉션 변경할지 여부에 따라 올바른 파라미터 타입을 사용할 책임은 나에게 있다.
+
+[돌아가기](#목차)
+
+## 객체의 배열과 원시 타입의 배열
+
+- arrayOf 함수에 원소를 넘기면 배열을 만들 수 있다.
+- arrayOfNulls 함수에 정수 값을 인자로 넘기면 모든 우너소가 null이고 인자로 넘긴 값과 크기가 같은 배열을 만들 수 있다. 물론 원소 타입이 널이 될 수 있는 타입인 경우에만 가능하다
+- Array 생성자는 배열 크기와 람다를 인자로 받아서 람다를 호출해서 각 배열 원소를 초기화한다.
+    arrayOf를 쓰지 않고 각 원소가 널이 아닌 배열을 만들어야 하는 경우 이 생성자를 사용한다.
+
+### 알파벳으로 이뤄진 배열 만들기
+``` kotlin
+fun main() {
+    val letters = Array<String>(26) {i -> ('a' + i).toString()}
+    println(letters.joinToString(""))
+}
+
+>>> abcdefghijklmnopqrstuvwxyz
+```
+
+### 컬렉션을 vararg 메서드에게 넘기기
+
+``` kotlin
+fun main() {
+   val strings = listOf("a", "b", "c")
+    println("%s/%s/%s".format(*strings.toTypedArray())) <- vararg 인자를 넘기기 위해 스프레드 연산자(*)를 써야 한다.
+}
+>>> a/b/c
+```
+
+원시 타입의 배열을 만드는 방법은 다음과 같다.
+- 각 배열 타입의 생성자는 size 인자 받아서 해당 원시타입의 디폴트 값으로 초기화 된 배열 반환
+- 팩토리 함수는 여러 값을 가변 인자로 받아서 그런 값이 들어간 배열을 반환
+- 크기와 람다를 인자로 받는 생성자를 사용
+
+``` kotlin
+val fiveZeros = IntArray(5)
+val fiveZerosToo = intArrayOf(0, 0, 0, 0, 0)
+
+val squares = IntArray(5) { i -> (i+1) * (i+1) }
+println(squares.joinToString())
+>>> 1, 4, 9, 16, 25
 ```
 
 [돌아가기](#목차)
